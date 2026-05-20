@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chalet Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d0f;
+    --panel: #0f1419;
+    --panel2: #141c23;
+    --border: #1e2d3a;
+    --accent: #00c8ff;
+    --accent2: #ff6b35;
+    --accent3: #39d98a;
+    --warn: #f5c542;
+    --text: #c8d8e4;
+    --muted: #4a6478;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow', sans-serif;
+    --cond: 'Barlow Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .logo {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--muted); font-weight: 300; }
+
+  #clock {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    color: var(--text);
+    letter-spacing: 0.1em;
+  }
+
+  #date-str {
+    font-family: var(--cond);
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: right;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent3);
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto;
+    gap: 1px;
+    background: var(--border);
+    padding: 1px;
+  }
+
+  .panel {
+    background: var(--panel);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.6s ease both;
+  }
+
+  .panel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .panel.blue::after { background: var(--accent); }
+  .panel.orange::after { background: var(--accent2); }
+  .panel.green::after { background: var(--accent3); }
+  .panel.yellow::after { background: var(--warn); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .panel:nth-child(1) { animation-delay: 0.0s; }
+  .panel:nth-child(2) { animation-delay: 0.1s; }
+  .panel:nth-child(3) { animation-delay: 0.2s; }
+  .panel:nth-child(4) { animation-delay: 0.3s; }
+  .panel:nth-child(5) { animation-delay: 0.4s; }
+  .panel:nth-child(6) { animation-delay: 0.5s; }
+
+  .panel-label {
+    font-family: var(--cond);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-label .icon { font-size: 0.85rem; }
+
+  .big-value {
+    font-family: var(--mono);
+    font-size: 3.2rem;
+    line-height: 1;
+    color: #fff;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .big-unit {
+    font-family: var(--cond);
+    font-size: 1rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 300;
+  }
+
+  .sub-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .sub-item { flex: 1; min-width: 80px; }
+
+  .sub-label {
+    font-family: var(--cond);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .sub-value {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-top: 2px;
+  }
+
+  /* Temp gauge */
+  .temp-ring {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 70px;
+    height: 70px;
+  }
+
+  .temp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .temp-ring circle { fill: none; stroke-width: 4; }
+  .ring-bg { stroke: var(--border); }
+  .ring-fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+
+  /* Wind compass */
+  .compass-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .compass {
+    width: 60px; height: 60px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .compass-needle {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 2px;
+    height: 24px;
+    background: linear-gradient(to bottom, var(--accent2) 50%, var(--muted) 50%);
+    transform-origin: bottom center;
+    transform: translateX(-50%) translateY(-100%);
+    transition: transform 1s ease;
+    border-radius: 1px;
+  }
+
+  .compass-dot {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 5px; height: 5px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .compass-labels {
+    position: absolute;
+    inset: 0;
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    color: var(--muted);
+  }
+
+  .compass-labels span {
+    position: absolute;
+  }
+  .cn { top: 3px; left: 50%; transform: translateX(-50%); color: var(--accent2); }
+  .cs { bottom: 3px; left: 50%; transform: translateX(-50%); }
+  .ce { right: 3px; top: 50%; transform: translateY(-50%); }
+  .cw { left: 3px; top: 50%; transform: translateY(-50%); }
+
+  /* Rain bar */
+  .rain-bar-wrap { margin-top: 10px; }
+  .rain-bar-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .rain-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .rain-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 1s ease; }
+
+  /* Pression chart mini */
+  .sparkline { margin-top: 12px; }
+  .sparkline svg { width: 100%; height: 50px; }
+
+  /* Bourse panel */
+  .market-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .market-row:last-child { border-bottom: none; }
+
+  .market-name {
+    font-family: var(--cond);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .market-ticker {
+    font-family: var(--mono);
+    font-size: 1.05rem;
+    color: #fff;
+  }
+
+  .market-change {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .up { color: var(--accent3); background: rgba(57,217,138,0.1); }
+  .down { color: var(--accent2); background: rgba(255,107,53,0.1); }
+
+  /* Wide panel */
+  .col-span-2 { grid-column: span 2; }
+  .col-span-3 { grid-column: span 3; }
+
+  /* Tradingview iframe wrapper */
+  .tv-wrap {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    height: 200px;
+  }
+
+  .tv-wrap iframe { width: 100%; height: 100%; border: none; }
+
+  /* Humidity arc */
+  .hum-arc { text-align: center; margin-top: 8px; }
+
+  /* Footer */
+  footer {
+    padding: 10px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--panel);
+  }
+
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  #last-update {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  /* Demo badge */
+  .demo-badge {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: var(--accent2);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    z-index: 1000;
+  }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .col-span-2 { grid-column: span 2; }
+    .col-span-3 { grid-column: span 2; }
+    .big-value { font-size: 2.4rem; }
+  }
+
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+    .col-span-2, .col-span-3 { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-badge">⚠ DÉMO — données simulées</div>
+
+<header>
+  <div>
+    <div class="logo">Chalet <span>/ Saint-Félicien</span></div>
+    <div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:3px;">
+      <span class="status-dot"></span>EN LIGNE · Ecowitt GW2000
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div id="clock">--:--:--</div>
+    <div id="date-str">--</div>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- Température extérieure -->
+  <div class="panel blue">
+    <div class="temp-ring">
+      <svg viewBox="0 0 70 70">
+        <circle class="ring-bg" cx="35" cy="35" r="30" />
+        <circle class="ring-fill" id="temp-ring-fill" cx="35" cy="35" r="30"
+          stroke-dasharray="188.5"
+          stroke-dashoffset="130" />
+      </svg>
+    </div>
+    <div class="panel-label"><span class="icon">🌡</span> Température extérieure</div>
+    <div class="big-value" id="temp-ext">--<span class="big-unit">°C</span></div>
+    <div class="sub-row">
+      <div class="sub-item">
+        <div class="sub-label">Ressenti</div>
+        <div class="sub-value" id="temp-ressenti">--°</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-label">Min 24h</div>
+        <div class="sub-value" id="temp-min">--°</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-label">Max 24h</div>
+        <div class="sub-value" id="temp-max">--°</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Température intérieure -->
+  <div class="panel green">
+    <div class="panel-label"><span class="icon">🏠</span> Intérieur</div>
+    <div class="big-value" id="temp-int">--<span class="big-unit">°C</span></div>
+    <div class="sub-row">
+      <div class="sub-item">
+        <div class="sub-label">Humidité int.</div>
+        <div class="sub-value" id="hum-int">--%</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-label">Point rosée</div>
+        <div class="sub-value" id="dew-int">--°</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bourse -->
+  <div class="panel orange" style="grid-row: span 2;">
+    <div class="panel-label"><span class="icon">📈</span> Marchés</div>
+
+    <div class="market-row">
+      <div>
+        <div class="market-name">Nasdaq Micro</div>
+        <div class="market-ticker" id="mnq-price">--</div>
+      </div>
+      <div class="market-change" id="mnq-chg">--%</div>
+    </div>
+
+    <div class="market-row">
+      <div>
+        <div class="market-name">S&P 500</div>
+        <div class="market-ticker" id="spx-price">--</div>
+      </div>
+      <div class="market-change" id="spx-chg">--%</div>
+    </div>
+
+    <div class="market-row">
+      <div>
+        <div class="market-name">CAD / USD</div>
+        <div class="market-ticker" id="cad-price">--</div>
+      </div>
+      <div class="market-change" id="cad-chg">--%</div>
+    </div>
+
+    <div class="market-row">
+      <div>
+        <div class="market-name">Bitcoin</div>
+        <div class="market-ticker" id="btc-price">--</div>
+      </div>
+      <div class="market-change" id="btc-chg">--%</div>
+    </div>
+
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+      <div class="panel-label" style="margin-bottom:6px;">Widget TradingView</div>
+      <div class="tv-wrap">
+        <iframe src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_mnq&symbol=CME_MINI%3ANQ1%21&interval=5&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f1419&studies=[]&theme=dark&style=1&timezone=America%2FToronto&withdateranges=0&showpopupbutton=0&allow_symbol_change=0" allowtransparency="true" scrolling="no"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vent -->
+  <div class="panel yellow">
+    <div class="panel-label"><span class="icon">💨</span> Vent</div>
+    <div class="compass-wrap">
+      <div class="compass">
+        <div class="compass-labels">
+          <span class="cn">N</span><span class="cs">S</span>
+          <span class="ce">E</span><span class="cw">O</span>
+        </div>
+        <div class="compass-needle" id="wind-needle"></div>
+        <div class="compass-dot"></div>
+      </div>
+      <div>
+        <div class="big-value" style="font-size:2rem;" id="wind-speed">--<span class="big-unit" style="font-size:0.8rem;">km/h</span></div>
+        <div style="font-family:var(--cond);font-size:0.75rem;color:var(--muted);margin-top:4px;" id="wind-dir-label">--</div>
+      </div>
+    </div>
+    <div class="sub-row">
+      <div class="sub-item">
+        <div class="sub-label">Rafale max</div>
+        <div class="sub-value" id="wind-gust">-- km/h</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-label">Direction</div>
+        <div class="sub-value" id="wind-deg">--°</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pluie -->
+  <div class="panel blue">
+    <div class="panel-label"><span class="icon">🌧</span> Précipitations</div>
+    <div class="big-value" id="rain-rate">--<span class="big-unit">mm/h</span></div>
+
+    <div class="rain-bar-wrap" style="margin-top:14px;">
+      <div class="rain-bar-label">
+        <span class="sub-label">Aujourd'hui</span>
+        <span class="sub-value" style="font-size:0.9rem;" id="rain-daily">-- mm</span>
+      </div>
+      <div class="rain-bar"><div class="rain-bar-fill" id="rain-bar-daily" style="width:0%"></div></div>
+
+      <div class="rain-bar-label">
+        <span class="sub-label">Ce mois</span>
+        <span class="sub-value" style="font-size:0.9rem;" id="rain-monthly">-- mm</span>
+      </div>
+      <div class="rain-bar"><div class="rain-bar-fill" id="rain-bar-monthly" style="width:0%;background:var(--muted)"></div></div>
+    </div>
+  </div>
+
+  <!-- Pression + humidité -->
+  <div class="panel green col-span-2">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <div class="panel-label"><span class="icon">🔵</span> Pression barométrique</div>
+        <div class="big-value" id="pressure">--<span class="big-unit">hPa</span></div>
+        <div class="sub-row">
+          <div class="sub-item">
+            <div class="sub-label">Tendance</div>
+            <div class="sub-value" id="pressure-trend">--</div>
+          </div>
+          <div class="sub-item">
+            <div class="sub-label">Absolu</div>
+            <div class="sub-value" id="pressure-abs">-- hPa</div>
+          </div>
+        </div>
+        <div class="sparkline">
+          <svg id="spark-svg" viewBox="0 0 200 50" preserveAspectRatio="none">
+            <polyline id="spark-line" fill="none" stroke="var(--accent3)" stroke-width="1.5" points=""/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <div class="panel-label"><span class="icon">💧</span> Humidité extérieure</div>
+        <div class="big-value" id="hum-ext">--<span class="big-unit">%</span></div>
+        <div class="sub-row">
+          <div class="sub-item">
+            <div class="sub-label">Point de rosée</div>
+            <div class="sub-value" id="dew-ext">--°C</div>
+          </div>
+          <div class="sub-item">
+            <div class="sub-label">Indice UV</div>
+            <div class="sub-value" id="uv-index">--</div>
+          </div>
+          <div class="sub-item">
+            <div class="sub-label">Solaire W/m²</div>
+            <div class="sub-value" id="solar">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="footer-text">GW2000 · API Ecowitt Cloud · Données météo Saint-Félicien QC</div>
+  <div id="last-update">Dernière mise à jour : --:--:--</div>
+</footer>
+
+<script>
+// ─── Horloge ───────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+
+  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+  document.getElementById('date-str').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── Compass direction ─────────────────────────────────────
+function degToDir(deg) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+// ─── Sparkline pression ────────────────────────────────────
+let pressureHistory = [];
+
+function updateSparkline(val) {
+  pressureHistory.push(val);
+  if (pressureHistory.length > 20) pressureHistory.shift();
+  const mn = Math.min(...pressureHistory);
+  const mx = Math.max(...pressureHistory) || mn + 1;
+  const pts = pressureHistory.map((v, i) => {
+    const x = (i / (pressureHistory.length - 1 || 1)) * 200;
+    const y = 48 - ((v - mn) / (mx - mn)) * 44;
+    return `${x},${y}`;
+  }).join(' ');
+  document.getElementById('spark-line').setAttribute('points', pts);
+}
+
+// ─── Données simulées (remplacées par Ecowitt API) ─────────
+function simulateEcowitt() {
+  const base = {
+    tempExt: -2 + Math.random() * 0.4 - 0.2,
+    tempInt: 20.5 + Math.random() * 0.2 - 0.1,
+    humExt: 78 + Math.floor(Math.random() * 3),
+    humInt: 42 + Math.floor(Math.random() * 2),
+    windSpeed: 14 + Math.random() * 4,
+    windDeg: 220 + Math.random() * 10,
+    windGust: 22 + Math.random() * 3,
+    pressure: 1013.2 + Math.random() * 0.3,
+    pressureAbs: 999.8,
+    rainRate: 0,
+    rainDaily: 2.4,
+    rainMonthly: 38.2,
+    uv: 1,
+    solar: 85,
+  };
+
+  // Temp ext
+  const te = base.tempExt.toFixed(1);
+  document.getElementById('temp-ext').innerHTML = `${te}<span class="big-unit">°C</span>`;
+  document.getElementById('temp-ressenti').textContent = `${(base.tempExt - 3).toFixed(1)}°`;
+  document.getElementById('temp-min').textContent = `-5.2°`;
+  document.getElementById('temp-max').textContent = `1.8°`;
+
+  // Anneau temp (plage -30 à +40 => 70 degrés)
+  const pct = Math.min(Math.max((base.tempExt + 30) / 70, 0), 1);
+  const circ = 2 * Math.PI * 30;
+  document.getElementById('temp-ring-fill').setAttribute('stroke-dashoffset', circ * (1 - pct * 0.75));
+
+  // Temp int
+  document.getElementById('temp-int').innerHTML = `${base.tempInt.toFixed(1)}<span class="big-unit">°C</span>`;
+  document.getElementById('hum-int').textContent = `${base.humInt}%`;
+  document.getElementById('dew-int').textContent = `${(base.tempInt - (100 - base.humInt) / 5).toFixed(1)}°`;
+
+  // Vent
+  document.getElementById('wind-speed').innerHTML = `${base.windSpeed.toFixed(0)}<span class="big-unit" style="font-size:0.8rem;">km/h</span>`;
+  document.getElementById('wind-gust').textContent = `${base.windGust.toFixed(0)} km/h`;
+  document.getElementById('wind-deg').textContent = `${base.windDeg.toFixed(0)}°`;
+  document.getElementById('wind-dir-label').textContent = degToDir(base.windDeg);
+  document.getElementById('wind-needle').style.transform =
+    `translateX(-50%) translateY(-100%) rotate(${base.windDeg}deg)`;
+
+  // Pluie
+  document.getElementById('rain-rate').innerHTML = `${base.rainRate.toFixed(1)}<span class="big-unit">mm/h</span>`;
+  document.getElementById('rain-daily').textContent = `${base.rainDaily} mm`;
+  document.getElementById('rain-monthly').textContent = `${base.rainMonthly} mm`;
+  document.getElementById('rain-bar-daily').style.width = `${Math.min(base.rainDaily / 30 * 100, 100)}%`;
+  document.getElementById('rain-bar-monthly').style.width = `${Math.min(base.rainMonthly / 150 * 100, 100)}%`;
+
+  // Pression
+  document.getElementById('pressure').innerHTML = `${base.pressure.toFixed(1)}<span class="big-unit">hPa</span>`;
+  document.getElementById('pressure-abs').textContent = `${base.pressureAbs.toFixed(1)} hPa`;
+  document.getElementById('pressure-trend').textContent = '→ Stable';
+  updateSparkline(base.pressure);
+
+  // Humidité ext
+  document.getElementById('hum-ext').innerHTML = `${base.humExt}<span class="big-unit">%</span>`;
+  document.getElementById('dew-ext').textContent = `${(base.tempExt - (100 - base.humExt) / 5).toFixed(1)}°C`;
+  document.getElementById('uv-index').textContent = base.uv;
+  document.getElementById('solar').textContent = base.solar;
+
+  // Heure mise à jour
+  const now = new Date();
+  document.getElementById('last-update').textContent =
+    `Dernière mise à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+}
+
+// ─── Données bourse simulées ───────────────────────────────
+// Pour la vraie intégration : remplace par fetch() vers Yahoo Finance ou Ecowitt cloud
+function simulateMarkets() {
+  const data = [
+    { id: 'mnq', name: 'mnq', price: 21438 + Math.random() * 20 - 10, chg: 0.42 },
+    { id: 'spx', name: 'spx', price: 5842 + Math.random() * 10 - 5, chg: 0.31 },
+    { id: 'cad', name: 'cad', price: 0.7321 + Math.random() * 0.001, chg: -0.12 },
+    { id: 'btc', name: 'btc', price: 103200 + Math.random() * 500 - 250, chg: 1.87 },
+  ];
+
+  data.forEach(d => {
+    const priceEl = document.getElementById(`${d.id}-price`);
+    const chgEl = document.getElementById(`${d.id}-chg`);
+    if (!priceEl) return;
+
+    const fmt = d.id === 'cad' ? d.price.toFixed(4) :
+                d.id === 'btc' ? d.price.toLocaleString('fr-CA', {maximumFractionDigits: 0}) :
+                d.price.toLocaleString('fr-CA', {maximumFractionDigits: 0});
+    priceEl.textContent = fmt;
+
+    const sign = d.chg >= 0 ? '+' : '';
+    chgEl.textContent = `${sign}${d.chg.toFixed(2)}%`;
+    chgEl.className = `market-change ${d.chg >= 0 ? 'up' : 'down'}`;
+  });
+}
+
+// ─── Init & refresh ────────────────────────────────────────
+simulateEcowitt();
+simulateMarkets();
+setInterval(simulateEcowitt, 15000);   // toutes les 15s
+setInterval(simulateMarkets, 30000);   // toutes les 30s
+
+/*
+ * ════════════════════════════════════════════════════════
+ *  INTÉGRATION ECOWITT CLOUD — décommenter quand prêt
+ * ════════════════════════════════════════════════════════
+ *
+ * const ECOWITT_APP_KEY = 'VOTRE_APP_KEY';
+ * const ECOWITT_API_KEY = 'VOTRE_API_KEY';
+ * const ECOWITT_MAC     = 'AA:BB:CC:DD:EE:FF';  // MAC du GW2000
+ *
+ * async function fetchEcowitt() {
+ *   const url = `https://api.ecowitt.net/api/v3/device/real_time` +
+ *     `?application_key=${ECOWITT_APP_KEY}` +
+ *     `&api_key=${ECOWITT_API_KEY}` +
+ *     `&mac=${ECOWITT_MAC}` +
+ *     `&call_back=all`;
+ *   const res = await fetch(url);
+ *   const json = await res.json();
+ *   // Mapper json.data.outdoor.temperature.value → temp-ext, etc.
+ * }
+ *
+ * setInterval(fetchEcowitt, 60000);
+ * fetchEcowitt();
+ */
+</script>
+</body>
+</html>
