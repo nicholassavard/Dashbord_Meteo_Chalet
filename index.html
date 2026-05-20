@@ -371,6 +371,7 @@
     .col-span-2, .col-span-3 { grid-column: span 1; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -567,6 +568,25 @@
     </div>
   </div>
 
+  <!-- Graphiques 24h températures -->
+  <div class="panel col-span-3" style="animation-delay:0.6s;">
+    <div class="panel-label"><span class="icon">📊</span> Historique 24h — Températures</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
+      <div>
+        <div style="font-family:var(--cond);font-size:0.7rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.1em;text-transform:uppercase;">
+          Extérieure &nbsp;<span id="chart-ext-range" style="color:var(--accent)"></span>
+        </div>
+        <canvas id="chart-ext" height="110"></canvas>
+      </div>
+      <div>
+        <div style="font-family:var(--cond);font-size:0.7rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.1em;text-transform:uppercase;">
+          Intérieure &nbsp;<span id="chart-int-range" style="color:var(--accent3)"></span>
+        </div>
+        <canvas id="chart-int" height="110"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <footer>
@@ -680,6 +700,13 @@ function simulateEcowitt() {
   const now = new Date();
   document.getElementById('last-update').textContent =
     `Dernière mise à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+  // Pousser dans l'historique toutes les 5 minutes seulement
+  const lastPush = simulateEcowitt._lastPush || 0;
+  if (Date.now() - lastPush >= 5 * 60 * 1000) {
+    pushToHistory(base.tempExt, base.tempInt);
+    simulateEcowitt._lastPush = Date.now();
+  }
 }
 
 // ─── Helpers affichage ────────────────────────────────────
@@ -769,7 +796,153 @@ async function fetchNQ() {
   }
 }
 
-// ─── Init & refresh ────────────────────────────────────────
+// ─── Historique 24h températures ──────────────────────────
+const HISTORY_MAX = 288; // 24h à 1 point/5min
+let histExt = [];
+let histInt = [];
+let chartExt = null;
+let chartInt = null;
+
+// Génère des données simulées pour les 24 dernières heures
+function initFakeHistory() {
+  const now = Date.now();
+  const interval = 5 * 60 * 1000; // 5 min
+  for (let i = HISTORY_MAX; i >= 0; i--) {
+    const t = now - i * interval;
+    const hour = new Date(t).getHours();
+    // Courbe réaliste : froid la nuit, plus chaud l'après-midi
+    const baseExt = -4 + 3 * Math.sin((hour - 6) / 24 * 2 * Math.PI) + (Math.random() - 0.5) * 0.6;
+    const baseInt = 20.5 + 0.8 * Math.sin((hour - 8) / 24 * 2 * Math.PI) + (Math.random() - 0.5) * 0.2;
+    histExt.push({ t, v: parseFloat(baseExt.toFixed(1)) });
+    histInt.push({ t, v: parseFloat(baseInt.toFixed(1)) });
+  }
+}
+
+function buildChartConfig(history, color, fillColor, labelId) {
+  const labels = history.map(p => {
+    const d = new Date(p.t);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  });
+  const data = history.map(p => p.v);
+  const mn = Math.min(...data);
+  const mx = Math.max(...data);
+  if (labelId) {
+    const el = document.getElementById(labelId);
+    if (el) el.textContent = `min ${mn.toFixed(1)}° / max ${mx.toFixed(1)}°`;
+  }
+
+  return {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: color,
+        backgroundColor: fillColor,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: { duration: 400 },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f1419',
+          borderColor: color,
+          borderWidth: 1,
+          titleColor: '#c8d8e4',
+          bodyColor: color,
+          titleFont: { family: "'Share Tech Mono'" },
+          bodyFont: { family: "'Share Tech Mono'" },
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y.toFixed(1)} °C`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#1e2d3a', drawTicks: false },
+          ticks: {
+            color: '#4a6478',
+            font: { family: "'Share Tech Mono'", size: 9 },
+            maxTicksLimit: 12,
+            maxRotation: 0,
+          },
+          border: { color: '#1e2d3a' }
+        },
+        y: {
+          grid: { color: '#1e2d3a' },
+          ticks: {
+            color: '#4a6478',
+            font: { family: "'Share Tech Mono'", size: 9 },
+            callback: v => `${v.toFixed(1)}°`
+          },
+          border: { color: '#1e2d3a' }
+        }
+      }
+    }
+  };
+}
+
+function initCharts() {
+  const ctxExt = document.getElementById('chart-ext').getContext('2d');
+  const ctxInt = document.getElementById('chart-int').getContext('2d');
+
+  chartExt = new Chart(ctxExt, buildChartConfig(
+    histExt, '#00c8ff',
+    'rgba(0,200,255,0.08)',
+    'chart-ext-range'
+  ));
+  chartInt = new Chart(ctxInt, buildChartConfig(
+    histInt, '#39d98a',
+    'rgba(57,217,138,0.08)',
+    'chart-int-range'
+  ));
+}
+
+function pushToHistory(tempExt, tempInt) {
+  const now = Date.now();
+  histExt.push({ t: now, v: tempExt });
+  histInt.push({ t: now, v: tempInt });
+  if (histExt.length > HISTORY_MAX) { histExt.shift(); histInt.shift(); }
+
+  if (!chartExt || !chartInt) return;
+
+  const fmtTime = ts => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  };
+
+  chartExt.data.labels = histExt.map(p => fmtTime(p.t));
+  chartExt.data.datasets[0].data = histExt.map(p => p.v);
+  chartInt.data.labels = histInt.map(p => fmtTime(p.t));
+  chartInt.data.datasets[0].data = histInt.map(p => p.v);
+
+  chartExt.update('none');
+  chartInt.update('none');
+
+  // Mise à jour min/max labels
+  const extVals = histExt.map(p => p.v);
+  const intVals = histInt.map(p => p.v);
+  const extEl = document.getElementById('chart-ext-range');
+  const intEl = document.getElementById('chart-int-range');
+  if (extEl) extEl.textContent = `min ${Math.min(...extVals).toFixed(1)}° / max ${Math.max(...extVals).toFixed(1)}°`;
+  if (intEl) intEl.textContent = `min ${Math.min(...intVals).toFixed(1)}° / max ${Math.max(...intVals).toFixed(1)}°`;
+}
+
+// Init historique simulé + graphiques
+initFakeHistory();
+window.addEventListener('DOMContentLoaded', () => { initCharts(); });
+// Fallback si DOMContentLoaded déjà passé
+if (document.readyState !== 'loading') { setTimeout(initCharts, 100); }
+
+
 simulateEcowitt();
 fetchBTC();
 fetchNQ();
