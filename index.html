@@ -437,44 +437,40 @@
 
   <!-- Bourse -->
   <div class="panel orange" style="grid-row: span 2;">
-    <div class="panel-label"><span class="icon">📈</span> Marchés</div>
+    <div class="panel-label"><span class="icon">📈</span> Marchés <span id="market-status" style="margin-left:auto;font-size:0.6rem;"></span></div>
 
+    <!-- NQ100 -->
     <div class="market-row">
       <div>
-        <div class="market-name">Nasdaq Micro</div>
-        <div class="market-ticker" id="mnq-price">--</div>
+        <div class="market-name">Nasdaq 100 · NQ</div>
+        <div class="market-ticker" id="mnq-price"><span style="color:var(--muted);font-size:0.8rem;">chargement…</span></div>
       </div>
       <div class="market-change" id="mnq-chg">--%</div>
     </div>
-
-    <div class="market-row">
-      <div>
-        <div class="market-name">S&P 500</div>
-        <div class="market-ticker" id="spx-price">--</div>
-      </div>
-      <div class="market-change" id="spx-chg">--%</div>
+    <div style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);padding:4px 0 10px 0;display:flex;gap:16px;">
+      <span>O: <span id="mnq-open">--</span></span>
+      <span>H: <span id="mnq-high">--</span></span>
+      <span>L: <span id="mnq-low">--</span></span>
     </div>
 
+    <!-- BTC -->
     <div class="market-row">
       <div>
-        <div class="market-name">CAD / USD</div>
-        <div class="market-ticker" id="cad-price">--</div>
-      </div>
-      <div class="market-change" id="cad-chg">--%</div>
-    </div>
-
-    <div class="market-row">
-      <div>
-        <div class="market-name">Bitcoin</div>
-        <div class="market-ticker" id="btc-price">--</div>
+        <div class="market-name">Bitcoin · BTC/USD</div>
+        <div class="market-ticker" id="btc-price"><span style="color:var(--muted);font-size:0.8rem;">chargement…</span></div>
       </div>
       <div class="market-change" id="btc-chg">--%</div>
     </div>
+    <div style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);padding:4px 0 10px 0;display:flex;gap:16px;">
+      <span>H24: <span id="btc-high">--</span></span>
+      <span>L24: <span id="btc-low">--</span></span>
+      <span>Vol: <span id="btc-vol">--</span>B</span>
+    </div>
 
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-      <div class="panel-label" style="margin-bottom:6px;">Widget TradingView</div>
+    <div style="margin-top:6px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="panel-label" style="margin-bottom:6px;">NQ — Graphique 5 min</div>
       <div class="tv-wrap">
-        <iframe src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_mnq&symbol=CME_MINI%3ANQ1%21&interval=5&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f1419&studies=[]&theme=dark&style=1&timezone=America%2FToronto&withdateranges=0&showpopupbutton=0&allow_symbol_change=0" allowtransparency="true" scrolling="no"></iframe>
+        <iframe src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_mnq&symbol=NASDAQ%3ANDX&interval=5&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f1419&studies=[]&theme=dark&style=1&timezone=America%2FToronto&withdateranges=0&showpopupbutton=0&allow_symbol_change=0" allowtransparency="true" scrolling="no"></iframe>
       </div>
     </div>
   </div>
@@ -686,37 +682,100 @@ function simulateEcowitt() {
     `Dernière mise à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
 }
 
-// ─── Données bourse simulées ───────────────────────────────
-// Pour la vraie intégration : remplace par fetch() vers Yahoo Finance ou Ecowitt cloud
-function simulateMarkets() {
-  const data = [
-    { id: 'mnq', name: 'mnq', price: 21438 + Math.random() * 20 - 10, chg: 0.42 },
-    { id: 'spx', name: 'spx', price: 5842 + Math.random() * 10 - 5, chg: 0.31 },
-    { id: 'cad', name: 'cad', price: 0.7321 + Math.random() * 0.001, chg: -0.12 },
-    { id: 'btc', name: 'btc', price: 103200 + Math.random() * 500 - 250, chg: 1.87 },
-  ];
+// ─── Helpers affichage ────────────────────────────────────
+function fmtPrice(val, decimals = 0) {
+  return val.toLocaleString('fr-CA', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
 
-  data.forEach(d => {
-    const priceEl = document.getElementById(`${d.id}-price`);
-    const chgEl = document.getElementById(`${d.id}-chg`);
-    if (!priceEl) return;
+function setMarket(id, price, chgPct, extraFn) {
+  const priceEl = document.getElementById(`${id}-price`);
+  const chgEl   = document.getElementById(`${id}-chg`);
+  if (priceEl) priceEl.textContent = price;
+  if (chgEl) {
+    const sign = chgPct >= 0 ? '+' : '';
+    chgEl.textContent = `${sign}${chgPct.toFixed(2)}%`;
+    chgEl.className = `market-change ${chgPct >= 0 ? 'up' : 'down'}`;
+  }
+  if (extraFn) extraFn();
+}
 
-    const fmt = d.id === 'cad' ? d.price.toFixed(4) :
-                d.id === 'btc' ? d.price.toLocaleString('fr-CA', {maximumFractionDigits: 0}) :
-                d.price.toLocaleString('fr-CA', {maximumFractionDigits: 0});
-    priceEl.textContent = fmt;
+// ─── Bitcoin via CoinGecko (gratuit, sans clé) ─────────────
+async function fetchBTC() {
+  try {
+    const r = await fetch(
+      'https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false',
+      { headers: { 'Accept': 'application/json' } }
+    );
+    const d = await r.json();
+    const md = d.market_data;
+    const price = md.current_price.usd;
+    const chg   = md.price_change_percentage_24h;
+    const high  = md.high_24h.usd;
+    const low   = md.low_24h.usd;
+    const vol   = (md.total_volume.usd / 1e9).toFixed(1);
 
-    const sign = d.chg >= 0 ? '+' : '';
-    chgEl.textContent = `${sign}${d.chg.toFixed(2)}%`;
-    chgEl.className = `market-change ${d.chg >= 0 ? 'up' : 'down'}`;
-  });
+    setMarket('btc', fmtPrice(price), chg, () => {
+      const h = document.getElementById('btc-high');
+      const l = document.getElementById('btc-low');
+      const v = document.getElementById('btc-vol');
+      if (h) h.textContent = fmtPrice(high);
+      if (l) l.textContent = fmtPrice(low);
+      if (v) v.textContent = vol;
+    });
+  } catch(e) {
+    console.warn('BTC fetch error:', e);
+    document.getElementById('btc-price').textContent = 'Erreur API';
+  }
+}
+
+// ─── Nasdaq 100 via Yahoo Finance (proxy public) ───────────
+async function fetchNQ() {
+  try {
+    // Yahoo Finance v8 — proxy CORS nécessaire sur GitHub Pages
+    const symbol = 'NQ%3DF';  // NQ Futures continu
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const meta   = d.chart.result[0].meta;
+    const price  = meta.regularMarketPrice;
+    const prev   = meta.chartPreviousClose || meta.previousClose;
+    const chg    = ((price - prev) / prev) * 100;
+    const open   = meta.regularMarketOpen   || prev;
+    const high   = meta.regularMarketDayHigh || price;
+    const low    = meta.regularMarketDayLow  || price;
+
+    // Statut marché
+    const statusEl = document.getElementById('market-status');
+    if (statusEl) {
+      const state = meta.marketState;
+      statusEl.textContent = state === 'REGULAR' ? '🟢 OUVERT' : state === 'PRE' ? '🟡 PRÉ-MARCHÉ' : '🔴 FERMÉ';
+      statusEl.style.color = state === 'REGULAR' ? 'var(--accent3)' : state === 'PRE' ? 'var(--warn)' : 'var(--muted)';
+    }
+
+    setMarket('mnq', fmtPrice(price), chg, () => {
+      const o = document.getElementById('mnq-open');
+      const h = document.getElementById('mnq-high');
+      const l = document.getElementById('mnq-low');
+      if (o) o.textContent = fmtPrice(open);
+      if (h) h.textContent = fmtPrice(high);
+      if (l) l.textContent = fmtPrice(low);
+    });
+  } catch(e) {
+    console.warn('NQ fetch error:', e);
+    // Yahoo Finance bloque le CORS depuis certains hébergeurs — on affiche un fallback propre
+    document.getElementById('mnq-price').innerHTML =
+      '<span style="font-size:0.75rem;color:var(--muted)">Via widget ↓</span>';
+    document.getElementById('mnq-chg').textContent = '';
+  }
 }
 
 // ─── Init & refresh ────────────────────────────────────────
 simulateEcowitt();
-simulateMarkets();
-setInterval(simulateEcowitt, 15000);   // toutes les 15s
-setInterval(simulateMarkets, 30000);   // toutes les 30s
+fetchBTC();
+fetchNQ();
+setInterval(simulateEcowitt, 15000);  // météo toutes les 15s
+setInterval(fetchBTC, 60000);         // BTC toutes les 60s (limite CoinGecko gratuit)
+setInterval(fetchNQ, 60000);          // NQ toutes les 60s
 
 /*
  * ════════════════════════════════════════════════════════
