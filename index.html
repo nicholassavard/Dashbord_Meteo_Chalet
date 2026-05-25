@@ -49,7 +49,6 @@
     letter-spacing: 0.1em;
   }
 
-  /* ── Cartes ── */
   .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -113,7 +112,6 @@
     margin-top: 2px;
   }
 
-  /* ── Graphiques ── */
   .charts {
     flex: 1;
     display: grid;
@@ -143,9 +141,39 @@
     color: #4a6478;
   }
 
-  canvas { width: 100% !important; }
+  /* Loading overlay */
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: #0b0e11;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 16px;
+    transition: opacity 0.5s;
+  }
 
-  /* ── Footer ── */
+  #loading.hidden { opacity: 0; pointer-events: none; }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid #1a2530;
+    border-top-color: #00c8ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: #4a6478;
+    letter-spacing: 0.15em;
+  }
+
   footer {
     padding: 10px 28px;
     border-top: 1px solid #1a2530;
@@ -177,10 +205,9 @@
   }
 
   .dot.err { background: #ff6b35; animation: none; }
+  .dot.loading { background: #f5c542; animation: blink 0.5s infinite; }
 
-  @keyframes blink {
-    0%,100% { opacity:1; } 50% { opacity:0.2; }
-  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
   @media (max-width: 600px) {
     .cards, .charts { grid-template-columns: 1fr; }
@@ -189,6 +216,11 @@
 </style>
 </head>
 <body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">CHARGEMENT HISTORIQUE 24H…</div>
+</div>
 
 <header>
   <div class="site-title">Chalet · Saint-Félicien</div>
@@ -199,15 +231,10 @@
 </header>
 
 <div class="cards">
-
-  <!-- Extérieure -->
   <div class="card">
     <div class="card-accent" style="background:#00c8ff;"></div>
     <div class="card-label">Extérieure</div>
-    <div>
-      <span class="card-value" id="val-ext">--</span>
-      <span class="card-unit">°C</span>
-    </div>
+    <div><span class="card-value" id="val-ext">--</span><span class="card-unit">°C</span></div>
     <div class="card-sub">
       <div class="sub-item">
         <div class="sub-label">Ressenti</div>
@@ -224,14 +251,10 @@
     </div>
   </div>
 
-  <!-- Intérieure -->
   <div class="card">
     <div class="card-accent" style="background:#39d98a;"></div>
     <div class="card-label">Intérieure</div>
-    <div>
-      <span class="card-value" id="val-int">--</span>
-      <span class="card-unit">°C</span>
-    </div>
+    <div><span class="card-value" id="val-int">--</span><span class="card-unit">°C</span></div>
     <div class="card-sub">
       <div class="sub-item">
         <div class="sub-label">Min 24h</div>
@@ -244,14 +267,10 @@
     </div>
   </div>
 
-  <!-- Eau -->
   <div class="card">
     <div class="card-accent" style="background:#7b61ff;"></div>
     <div class="card-label">Eau</div>
-    <div>
-      <span class="card-value" id="val-water">--</span>
-      <span class="card-unit">°C</span>
-    </div>
+    <div><span class="card-value" id="val-water">--</span><span class="card-unit">°C</span></div>
     <div class="card-sub">
       <div class="sub-item">
         <div class="sub-label">Min 24h</div>
@@ -263,7 +282,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <div class="charts">
@@ -292,24 +310,23 @@
 
 <footer>
   <div class="footer-left">GW3000B · Ecowitt Cloud</div>
-  <div id="status"><span class="dot" id="dot"></span><span id="status-text">Connexion…</span></div>
+  <div id="status"><span class="dot loading" id="dot"></span><span id="status-text">Initialisation…</span></div>
 </footer>
 
 <script>
-// ── Config ────────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────
 const APP_KEY  = '4E38524335ACBCBFA94809FD60EB2071';
 const API_KEY  = 'c6288d22-7592-4772-b9c9-e472e08e3421';
 const MAC      = '84:1F:E8:35:E4:93';
 const PROXY    = 'https://corsproxy.io/?';
-const INTERVAL = 60000; // 60s
-const MAX_PTS  = 288;   // 24h × 1pt/5min
+const INTERVAL = 60000;
 
-// ── Historique ────────────────────────────────────────────
+// ── Historique ─────────────────────────────────────────────
 let hist = { ext: [], int: [], water: [] };
 let charts = {};
 let lastPush = 0;
 
-// ── Horloge ───────────────────────────────────────────────
+// ── Horloge ────────────────────────────────────────────────
 const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const MONTHS = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
 
@@ -324,7 +341,7 @@ function tick() {
 setInterval(tick, 1000);
 tick();
 
-// ── Chart factory ─────────────────────────────────────────
+// ── Chart factory ──────────────────────────────────────────
 function makeChart(id, color) {
   const ctx = document.getElementById(id).getContext('2d');
   return new Chart(ctx, {
@@ -334,7 +351,7 @@ function makeChart(id, color) {
       datasets: [{
         data: [],
         borderColor: color,
-        backgroundColor: color.replace(')', ', 0.07)').replace('rgb', 'rgba'),
+        backgroundColor: color.replace('rgb(', 'rgba(').replace(')', ', 0.07)'),
         borderWidth: 1.5,
         pointRadius: 0,
         pointHoverRadius: 3,
@@ -344,7 +361,7 @@ function makeChart(id, color) {
     },
     options: {
       responsive: true,
-      animation: false,
+      animation: { duration: 600 },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
@@ -381,29 +398,52 @@ function initCharts() {
   charts.water = makeChart('chart-water', 'rgb(123, 97, 255)');
 }
 
-// ── Mettre à jour un graphique ────────────────────────────
-function updateChart(key, rangeId) {
+// ── Mise à jour graphique ──────────────────────────────────
+function refreshChart(key, rangeId) {
   const h = hist[key];
   if (!h.length || !charts[key]) return;
 
   const fmt = ts => {
-    const d = new Date(ts);
+    const d = new Date(ts * 1000);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   };
 
   charts[key].data.labels = h.map(p => fmt(p.t));
   charts[key].data.datasets[0].data = h.map(p => p.v);
-  charts[key].update('none');
+  charts[key].update();
 
   const vals = h.map(p => p.v);
   document.getElementById(rangeId).textContent =
     `↓ ${Math.min(...vals).toFixed(1)}°  ↑ ${Math.max(...vals).toFixed(1)}°`;
+
+  const mn = Math.min(...vals);
+  const mx = Math.max(...vals);
+  return { mn, mx };
 }
 
-// ── Helpers ───────────────────────────────────────────────
-function setVal(id, v, decimals = 1) {
+function refreshAllCharts() {
+  const re = refreshChart('ext',   'range-ext');
+  const ri = refreshChart('int',   'range-int');
+  const rw = refreshChart('water', 'range-water');
+
+  if (re) {
+    document.getElementById('val-ext-min').textContent = `${re.mn.toFixed(1)}°`;
+    document.getElementById('val-ext-max').textContent = `${re.mx.toFixed(1)}°`;
+  }
+  if (ri) {
+    document.getElementById('val-int-min').textContent = `${ri.mn.toFixed(1)}°`;
+    document.getElementById('val-int-max').textContent = `${ri.mx.toFixed(1)}°`;
+  }
+  if (rw) {
+    document.getElementById('val-water-min').textContent = `${rw.mn.toFixed(1)}°`;
+    document.getElementById('val-water-max').textContent = `${rw.mx.toFixed(1)}°`;
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────
+function setVal(id, v) {
   const el = document.getElementById(id);
-  if (el) el.textContent = v !== null ? parseFloat(v).toFixed(decimals) : '--';
+  if (el) el.textContent = v !== null && v !== undefined ? parseFloat(v).toFixed(1) : '--';
 }
 
 function ecowittVal(obj, key) {
@@ -411,81 +451,145 @@ function ecowittVal(obj, key) {
     ? parseFloat(obj[key].value) : null;
 }
 
-function minMax(key, id_min, id_max) {
-  const vals = hist[key].map(p => p.v);
-  if (!vals.length) return;
-  document.getElementById(id_min).textContent = `${Math.min(...vals).toFixed(1)}°`;
-  document.getElementById(id_max).textContent = `${Math.max(...vals).toFixed(1)}°`;
-}
-
-// ── Fetch Ecowitt ─────────────────────────────────────────
-async function fetchEcowitt() {
+function setStatus(ok, msg) {
   const dot  = document.getElementById('dot');
   const stxt = document.getElementById('status-text');
-  try {
-    const apiUrl =
-      `https://api.ecowitt.net/api/v3/device/real_time` +
-      `?application_key=${APP_KEY}` +
-      `&api_key=${API_KEY}` +
-      `&mac=${MAC}` +
-      `&call_back=all` +
-      `&temp_unitid=1` +
-      `&pressure_unitid=3` +
-      `&wind_speed_unitid=7` +
-      `&rainfall_unitid=12`;
+  dot.className  = `dot${ok ? '' : ' err'}`;
+  stxt.textContent = msg;
+}
 
-    const res  = await fetch(PROXY + encodeURIComponent(apiUrl));
+function buildEcowittUrl(endpoint, extra = '') {
+  return PROXY + encodeURIComponent(
+    `https://api.ecowitt.net/api/v3/device/${endpoint}` +
+    `?application_key=${APP_KEY}` +
+    `&api_key=${API_KEY}` +
+    `&mac=${MAC}` +
+    `&temp_unitid=1` +
+    `&pressure_unitid=3` +
+    `&wind_speed_unitid=7` +
+    `&rainfall_unitid=12` +
+    extra
+  );
+}
+
+// ── Fetch historique 24h ───────────────────────────────────
+// Ecowitt stocke 5 min d'intervalles — on récupère les 24h passées
+async function fetchHistory() {
+  const loadingText = document.getElementById('loading-text');
+
+  try {
+    const now   = Math.floor(Date.now() / 1000);
+    const start = now - 24 * 3600;
+
+    // Format YYYY-MM-DD HH:MM:SS pour l'API Ecowitt
+    const fmtDate = ts => {
+      const d = new Date(ts * 1000);
+      const pad = x => String(x).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+
+    loadingText.textContent = 'RÉCUPÉRATION DONNÉES ECOWITT…';
+
+    const url = buildEcowittUrl('history',
+      `&start_date=${encodeURIComponent(fmtDate(start))}` +
+      `&end_date=${encodeURIComponent(fmtDate(now))}` +
+      `&call_back=outdoor.temperature,indoor.temperature,water_temp.temperature`
+    );
+
+    const res  = await fetch(url);
     const json = await res.json();
 
-    if (json.code !== 0) throw new Error(json.msg || 'API error');
+    if (json.code !== 0) throw new Error(json.msg || 'API history error');
+
+    const d = json.data;
+
+    // Parser outdoor temperature
+    const parseChannel = (obj, path) => {
+      const parts = path.split('.');
+      let cur = obj;
+      for (const p of parts) { cur = cur?.[p]; }
+      if (!cur || !cur.list) return [];
+      return Object.entries(cur.list).map(([ts, v]) => ({
+        t: parseInt(ts),
+        v: parseFloat(v)
+      })).sort((a, b) => a.t - b.t);
+    };
+
+    const extData   = parseChannel(d, 'outdoor.temperature');
+    const intData   = parseChannel(d, 'indoor.temperature');
+    const waterData = parseChannel(d, 'water_temp.temperature');
+
+    if (extData.length)   hist.ext   = extData;
+    if (intData.length)   hist.int   = intData;
+    if (waterData.length) hist.water = waterData;
+
+    loadingText.textContent = `${extData.length} POINTS CHARGÉS`;
+
+    refreshAllCharts();
+
+  } catch(e) {
+    console.warn('History fetch error:', e);
+    loadingText.textContent = 'HISTORIQUE INDISPONIBLE';
+  }
+
+  // Cacher le loading après un court délai
+  setTimeout(() => {
+    const el = document.getElementById('loading');
+    if (el) el.classList.add('hidden');
+    setTimeout(() => { if (el) el.style.display = 'none'; }, 600);
+  }, 800);
+}
+
+// ── Fetch temps réel ───────────────────────────────────────
+async function fetchLive() {
+  try {
+    const res  = await fetch(buildEcowittUrl('real_time', '&call_back=all'));
+    const json = await res.json();
+
+    if (json.code !== 0) throw new Error(json.msg);
 
     const d     = json.data;
-    const out   = d.outdoor   || {};
-    const inn   = d.indoor    || {};
-    const wat   = d.water_temp || d.soil_ch1 || {}; // capteur eau
+    const out   = d.outdoor    || {};
+    const inn   = d.indoor     || {};
+    const wat   = d.water_temp || d.soil_ch1 || {};
 
     const tempExt   = ecowittVal(out, 'temperature');
     const feelsLike = ecowittVal(out, 'feels_like') ?? tempExt;
     const tempInt   = ecowittVal(inn, 'temperature');
     const tempWater = ecowittVal(wat, 'temperature');
 
-    // Affichage valeurs
     setVal('val-ext',   tempExt);
-    setVal('val-feels', feelsLike);
+    setVal('val-feels', feelsLike !== null ? feelsLike : null);
     setVal('val-int',   tempInt);
     setVal('val-water', tempWater);
 
-    // Historique (toutes les 5 min)
-    const now = Date.now();
-    if (now - lastPush >= 5 * 60 * 1000) {
-      if (tempExt   !== null) { hist.ext.push({t: now, v: tempExt});   if (hist.ext.length   > MAX_PTS) hist.ext.shift();   }
-      if (tempInt   !== null) { hist.int.push({t: now, v: tempInt});   if (hist.int.length   > MAX_PTS) hist.int.shift();   }
-      if (tempWater !== null) { hist.water.push({t: now, v: tempWater}); if (hist.water.length > MAX_PTS) hist.water.shift(); }
+    // Ajouter au graphique toutes les 5 min
+    const now = Math.floor(Date.now() / 1000);
+    if (now - lastPush >= 300) {
+      if (tempExt   !== null) { hist.ext.push({t: now, v: tempExt});   if (hist.ext.length   > 288) hist.ext.shift();   }
+      if (tempInt   !== null) { hist.int.push({t: now, v: tempInt});   if (hist.int.length   > 288) hist.int.shift();   }
+      if (tempWater !== null) { hist.water.push({t: now, v: tempWater}); if (hist.water.length > 288) hist.water.shift(); }
       lastPush = now;
-      updateChart('ext',   'range-ext');
-      updateChart('int',   'range-int');
-      updateChart('water', 'range-water');
-      minMax('ext',   'val-ext-min',   'val-ext-max');
-      minMax('int',   'val-int-min',   'val-int-max');
-      minMax('water', 'val-water-min', 'val-water-max');
+      refreshAllCharts();
     }
 
-    // Statut
     const t = new Date();
-    dot.className = 'dot';
-    stxt.textContent = `Mis à jour ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
+    setStatus(true,
+      `Mis à jour ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`
+    );
 
   } catch(e) {
-    console.warn('Ecowitt error:', e);
-    dot.className = 'dot err';
-    stxt.textContent = 'Erreur connexion';
+    console.warn('Live fetch error:', e);
+    setStatus(false, 'Erreur connexion');
   }
 }
 
-// ── Démarrage ─────────────────────────────────────────────
+// ── Démarrage ──────────────────────────────────────────────
 initCharts();
-fetchEcowitt();
-setInterval(fetchEcowitt, INTERVAL);
+fetchHistory().then(() => {
+  fetchLive();
+  setInterval(fetchLive, INTERVAL);
+});
 </script>
 </body>
 </html>
