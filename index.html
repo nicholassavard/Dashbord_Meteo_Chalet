@@ -3,1103 +3,489 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chalet Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@300;500;700&display=swap" rel="stylesheet">
+<title>Chalet — Températures</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0d0f;
-    --panel: #0f1419;
-    --panel2: #141c23;
-    --border: #1e2d3a;
-    --accent: #00c8ff;
-    --accent2: #ff6b35;
-    --accent3: #39d98a;
-    --warn: #f5c542;
-    --text: #c8d8e4;
-    --muted: #4a6478;
-    --mono: 'Share Tech Mono', monospace;
-    --sans: 'Barlow', sans-serif;
-    --cond: 'Barlow Condensed', sans-serif;
-  }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
+    background: #0b0e11;
+    color: #c8d8e4;
+    font-family: 'Barlow', sans-serif;
     min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Grain overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 999;
-    opacity: 0.4;
+    display: flex;
+    flex-direction: column;
   }
 
   header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 14px 24px;
-    border-bottom: 1px solid var(--border);
-    background: var(--panel);
+    align-items: center;
+    padding: 16px 28px;
+    border-bottom: 1px solid #1a2530;
   }
 
-  .logo {
-    font-family: var(--cond);
-    font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: 0.2em;
-    color: var(--accent);
+  .site-title {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
     text-transform: uppercase;
+    color: #4a6478;
   }
-
-  .logo span { color: var(--muted); font-weight: 300; }
 
   #clock {
-    font-family: var(--mono);
-    font-size: 1.5rem;
-    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.3rem;
+    color: #c8d8e4;
+    letter-spacing: 0.08em;
+  }
+
+  #dateline {
+    font-size: 0.7rem;
+    color: #4a6478;
+    text-align: right;
+    margin-top: 2px;
+    text-transform: uppercase;
     letter-spacing: 0.1em;
   }
 
-  #date-str {
-    font-family: var(--cond);
-    font-size: 0.8rem;
-    color: var(--muted);
-    text-align: right;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    margin-top: 2px;
-  }
-
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--accent3);
-    display: inline-block;
-    margin-right: 6px;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  .grid {
+  /* ── Cartes ── */
+  .cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: auto;
     gap: 1px;
-    background: var(--border);
-    padding: 1px;
+    background: #1a2530;
+    border-bottom: 1px solid #1a2530;
   }
 
-  .panel {
-    background: var(--panel);
-    padding: 20px;
+  .card {
+    background: #0f1519;
+    padding: 28px 28px 22px;
     position: relative;
-    overflow: hidden;
-    animation: fadeIn 0.6s ease both;
   }
 
-  .panel::after {
-    content: '';
+  .card-accent {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
   }
 
-  .panel.blue::after { background: var(--accent); }
-  .panel.orange::after { background: var(--accent2); }
-  .panel.green::after { background: var(--accent3); }
-  .panel.yellow::after { background: var(--warn); }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .panel:nth-child(1) { animation-delay: 0.0s; }
-  .panel:nth-child(2) { animation-delay: 0.1s; }
-  .panel:nth-child(3) { animation-delay: 0.2s; }
-  .panel:nth-child(4) { animation-delay: 0.3s; }
-  .panel:nth-child(5) { animation-delay: 0.4s; }
-  .panel:nth-child(6) { animation-delay: 0.5s; }
-
-  .panel-label {
-    font-family: var(--cond);
-    font-size: 0.7rem;
+  .card-label {
+    font-size: 0.68rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    color: #4a6478;
+    margin-bottom: 14px;
   }
 
-  .panel-label .icon { font-size: 0.85rem; }
-
-  .big-value {
-    font-family: var(--mono);
-    font-size: 3.2rem;
+  .card-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 3.8rem;
     line-height: 1;
-    color: #fff;
-    display: flex;
-    align-items: flex-end;
-    gap: 6px;
+    color: #ffffff;
   }
 
-  .big-unit {
-    font-family: var(--cond);
+  .card-unit {
+    font-family: 'Barlow', sans-serif;
     font-size: 1rem;
-    color: var(--muted);
-    margin-bottom: 8px;
+    color: #4a6478;
     font-weight: 300;
+    margin-left: 4px;
   }
 
-  .sub-row {
+  .card-sub {
+    margin-top: 14px;
     display: flex;
-    gap: 16px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    flex-wrap: wrap;
+    gap: 20px;
   }
 
-  .sub-item { flex: 1; min-width: 80px; }
-
-  .sub-label {
-    font-family: var(--cond);
-    font-size: 0.65rem;
+  .sub-item .sub-label {
+    font-size: 0.62rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: #4a6478;
   }
 
-  .sub-value {
-    font-family: var(--mono);
-    font-size: 1.1rem;
-    color: var(--text);
+  .sub-item .sub-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+    color: #8aa8be;
     margin-top: 2px;
   }
 
-  /* Temp gauge */
-  .temp-ring {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-    width: 70px;
-    height: 70px;
+  /* ── Graphiques ── */
+  .charts {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #1a2530;
   }
 
-  .temp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .temp-ring circle { fill: none; stroke-width: 4; }
-  .ring-bg { stroke: var(--border); }
-  .ring-fill { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+  .chart-panel {
+    background: #0b0e11;
+    padding: 20px 24px 16px;
+  }
 
-  /* Wind compass */
-  .compass-wrap {
+  .chart-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #4a6478;
+    margin-bottom: 4px;
     display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 12px;
-  }
-
-  .compass {
-    width: 60px; height: 60px;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .compass-needle {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 2px;
-    height: 24px;
-    background: linear-gradient(to bottom, var(--accent2) 50%, var(--muted) 50%);
-    transform-origin: bottom center;
-    transform: translateX(-50%) translateY(-100%);
-    transition: transform 1s ease;
-    border-radius: 1px;
-  }
-
-  .compass-dot {
-    position: absolute;
-    top: 50%; left: 50%;
-    width: 5px; height: 5px;
-    background: #fff;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  .compass-labels {
-    position: absolute;
-    inset: 0;
-    font-family: var(--mono);
-    font-size: 0.5rem;
-    color: var(--muted);
-  }
-
-  .compass-labels span {
-    position: absolute;
-  }
-  .cn { top: 3px; left: 50%; transform: translateX(-50%); color: var(--accent2); }
-  .cs { bottom: 3px; left: 50%; transform: translateX(-50%); }
-  .ce { right: 3px; top: 50%; transform: translateY(-50%); }
-  .cw { left: 3px; top: 50%; transform: translateY(-50%); }
-
-  /* Rain bar */
-  .rain-bar-wrap { margin-top: 10px; }
-  .rain-bar-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .rain-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
-  .rain-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 1s ease; }
-
-  /* Pression chart mini */
-  .sparkline { margin-top: 12px; }
-  .sparkline svg { width: 100%; height: 50px; }
-
-  /* Bourse panel */
-  .market-row {
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
   }
-  .market-row:last-child { border-bottom: none; }
 
-  .market-name {
-    font-family: var(--cond);
-    font-size: 0.75rem;
+  .chart-range {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: #4a6478;
+  }
+
+  canvas { width: 100% !important; }
+
+  /* ── Footer ── */
+  footer {
+    padding: 10px 28px;
+    border-top: 1px solid #1a2530;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-size: 0.65rem;
+    color: #2a3d4e;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--muted);
   }
 
-  .market-ticker {
-    font-family: var(--mono);
-    font-size: 1.05rem;
-    color: #fff;
-  }
-
-  .market-change {
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    padding: 2px 8px;
-    border-radius: 3px;
-  }
-
-  .up { color: var(--accent3); background: rgba(57,217,138,0.1); }
-  .down { color: var(--accent2); background: rgba(255,107,53,0.1); }
-
-  /* Wide panel */
-  .col-span-2 { grid-column: span 2; }
-  .col-span-3 { grid-column: span 3; }
-
-  /* Tradingview iframe wrapper */
-  .tv-wrap {
-    margin-top: 12px;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    height: 200px;
-  }
-
-  .tv-wrap iframe { width: 100%; height: 100%; border: none; }
-
-  /* Humidity arc */
-  .hum-arc { text-align: center; margin-top: 8px; }
-
-  /* Footer */
-  footer {
-    padding: 10px 24px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--panel);
-  }
-
-  .footer-text {
-    font-family: var(--mono);
+  #status {
+    font-family: 'Share Tech Mono', monospace;
     font-size: 0.65rem;
-    color: var(--muted);
+    color: #4a6478;
   }
 
-  #last-update {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--muted);
+  .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #39d98a;
+    margin-right: 6px;
+    animation: blink 2s infinite;
   }
 
-  /* Demo badge */
-  .demo-badge {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: var(--accent2);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    padding: 3px 8px;
-    border-radius: 2px;
-    letter-spacing: 0.1em;
-    z-index: 1000;
+  .dot.err { background: #ff6b35; animation: none; }
+
+  @keyframes blink {
+    0%,100% { opacity:1; } 50% { opacity:0.2; }
   }
 
-  @media (max-width: 768px) {
-    .grid { grid-template-columns: repeat(2, 1fr); }
-    .col-span-2 { grid-column: span 2; }
-    .col-span-3 { grid-column: span 2; }
-    .big-value { font-size: 2.4rem; }
-  }
-
-  @media (max-width: 480px) {
-    .grid { grid-template-columns: 1fr; }
-    .col-span-2, .col-span-3 { grid-column: span 1; }
+  @media (max-width: 600px) {
+    .cards, .charts { grid-template-columns: 1fr; }
+    .card-value { font-size: 3rem; }
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="demo-badge">⚠ DÉMO — données simulées</div>
-
 <header>
+  <div class="site-title">Chalet · Saint-Félicien</div>
   <div>
-    <div class="logo">Chalet <span>/ Saint-Félicien</span></div>
-    <div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:3px;">
-      <span class="status-dot"></span>EN LIGNE · Ecowitt GW2000
-    </div>
-  </div>
-  <div style="text-align:right">
     <div id="clock">--:--:--</div>
-    <div id="date-str">--</div>
+    <div id="dateline">--</div>
   </div>
 </header>
 
-<div class="grid">
+<div class="cards">
 
-  <!-- Température extérieure -->
-  <div class="panel blue">
-    <div class="temp-ring">
-      <svg viewBox="0 0 70 70">
-        <circle class="ring-bg" cx="35" cy="35" r="30" />
-        <circle class="ring-fill" id="temp-ring-fill" cx="35" cy="35" r="30"
-          stroke-dasharray="188.5"
-          stroke-dashoffset="130" />
-      </svg>
+  <!-- Extérieure -->
+  <div class="card">
+    <div class="card-accent" style="background:#00c8ff;"></div>
+    <div class="card-label">Extérieure</div>
+    <div>
+      <span class="card-value" id="val-ext">--</span>
+      <span class="card-unit">°C</span>
     </div>
-    <div class="panel-label"><span class="icon">🌡</span> Température extérieure</div>
-    <div class="big-value" id="temp-ext">--<span class="big-unit">°C</span></div>
-    <div class="sub-row">
+    <div class="card-sub">
       <div class="sub-item">
         <div class="sub-label">Ressenti</div>
-        <div class="sub-value" id="temp-ressenti">--°</div>
+        <div class="sub-val" id="val-feels">--°</div>
       </div>
       <div class="sub-item">
         <div class="sub-label">Min 24h</div>
-        <div class="sub-value" id="temp-min">--°</div>
+        <div class="sub-val" id="val-ext-min">--°</div>
       </div>
       <div class="sub-item">
         <div class="sub-label">Max 24h</div>
-        <div class="sub-value" id="temp-max">--°</div>
+        <div class="sub-val" id="val-ext-max">--°</div>
       </div>
     </div>
   </div>
 
-  <!-- Température intérieure -->
-  <div class="panel green">
-    <div class="panel-label"><span class="icon">🏠</span> Intérieur</div>
-    <div class="big-value" id="temp-int">--<span class="big-unit">°C</span></div>
-    <div class="sub-row">
+  <!-- Intérieure -->
+  <div class="card">
+    <div class="card-accent" style="background:#39d98a;"></div>
+    <div class="card-label">Intérieure</div>
+    <div>
+      <span class="card-value" id="val-int">--</span>
+      <span class="card-unit">°C</span>
+    </div>
+    <div class="card-sub">
       <div class="sub-item">
-        <div class="sub-label">Humidité int.</div>
-        <div class="sub-value" id="hum-int">--%</div>
-      </div>
-      <div class="sub-item">
-        <div class="sub-label">Point rosée</div>
-        <div class="sub-value" id="dew-int">--°</div>
-      </div>
-      <div class="sub-item">
-        <div class="sub-label">💧 Eau</div>
-        <div class="sub-value" id="temp-water">--°C</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bourse -->
-  <div class="panel orange" style="grid-row: span 2;">
-    <div class="panel-label"><span class="icon">📈</span> Marchés <span id="market-status" style="margin-left:auto;font-size:0.6rem;"></span></div>
-
-    <!-- NQ100 -->
-    <div class="market-row">
-      <div>
-        <div class="market-name">Nasdaq 100 · NQ</div>
-        <div class="market-ticker" id="mnq-price"><span style="color:var(--muted);font-size:0.8rem;">chargement…</span></div>
-      </div>
-      <div class="market-change" id="mnq-chg">--%</div>
-    </div>
-    <div style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);padding:4px 0 10px 0;display:flex;gap:16px;">
-      <span>O: <span id="mnq-open">--</span></span>
-      <span>H: <span id="mnq-high">--</span></span>
-      <span>L: <span id="mnq-low">--</span></span>
-    </div>
-
-    <!-- BTC -->
-    <div class="market-row">
-      <div>
-        <div class="market-name">Bitcoin · BTC/USD</div>
-        <div class="market-ticker" id="btc-price"><span style="color:var(--muted);font-size:0.8rem;">chargement…</span></div>
-      </div>
-      <div class="market-change" id="btc-chg">--%</div>
-    </div>
-    <div style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);padding:4px 0 10px 0;display:flex;gap:16px;">
-      <span>H24: <span id="btc-high">--</span></span>
-      <span>L24: <span id="btc-low">--</span></span>
-      <span>Vol: <span id="btc-vol">--</span>B</span>
-    </div>
-
-    <div style="margin-top:6px;padding-top:12px;border-top:1px solid var(--border);">
-      <div class="panel-label" style="margin-bottom:6px;">NQ — Graphique 5 min</div>
-      <div class="tv-wrap">
-        <iframe src="https://www.tradingview.com/widgetembed/?frameElementId=tradingview_mnq&symbol=NASDAQ%3ANDX&interval=5&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f1419&studies=[]&theme=dark&style=1&timezone=America%2FToronto&withdateranges=0&showpopupbutton=0&allow_symbol_change=0" allowtransparency="true" scrolling="no"></iframe>
-      </div>
-    </div>
-  </div>
-
-  <!-- Vent -->
-  <div class="panel yellow">
-    <div class="panel-label"><span class="icon">💨</span> Vent</div>
-    <div class="compass-wrap">
-      <div class="compass">
-        <div class="compass-labels">
-          <span class="cn">N</span><span class="cs">S</span>
-          <span class="ce">E</span><span class="cw">O</span>
-        </div>
-        <div class="compass-needle" id="wind-needle"></div>
-        <div class="compass-dot"></div>
-      </div>
-      <div>
-        <div class="big-value" style="font-size:2rem;" id="wind-speed">--<span class="big-unit" style="font-size:0.8rem;">km/h</span></div>
-        <div style="font-family:var(--cond);font-size:0.75rem;color:var(--muted);margin-top:4px;" id="wind-dir-label">--</div>
-      </div>
-    </div>
-    <div class="sub-row">
-      <div class="sub-item">
-        <div class="sub-label">Rafale max</div>
-        <div class="sub-value" id="wind-gust">-- km/h</div>
+        <div class="sub-label">Min 24h</div>
+        <div class="sub-val" id="val-int-min">--°</div>
       </div>
       <div class="sub-item">
-        <div class="sub-label">Direction</div>
-        <div class="sub-value" id="wind-deg">--°</div>
+        <div class="sub-label">Max 24h</div>
+        <div class="sub-val" id="val-int-max">--°</div>
       </div>
     </div>
   </div>
 
-  <!-- Pluie -->
-  <div class="panel blue">
-    <div class="panel-label"><span class="icon">🌧</span> Précipitations</div>
-    <div class="big-value" id="rain-rate">--<span class="big-unit">mm/h</span></div>
-
-    <div class="rain-bar-wrap" style="margin-top:14px;">
-      <div class="rain-bar-label">
-        <span class="sub-label">Aujourd'hui</span>
-        <span class="sub-value" style="font-size:0.9rem;" id="rain-daily">-- mm</span>
-      </div>
-      <div class="rain-bar"><div class="rain-bar-fill" id="rain-bar-daily" style="width:0%"></div></div>
-
-      <div class="rain-bar-label">
-        <span class="sub-label">Ce mois</span>
-        <span class="sub-value" style="font-size:0.9rem;" id="rain-monthly">-- mm</span>
-      </div>
-      <div class="rain-bar"><div class="rain-bar-fill" id="rain-bar-monthly" style="width:0%;background:var(--muted)"></div></div>
+  <!-- Eau -->
+  <div class="card">
+    <div class="card-accent" style="background:#7b61ff;"></div>
+    <div class="card-label">Eau</div>
+    <div>
+      <span class="card-value" id="val-water">--</span>
+      <span class="card-unit">°C</span>
     </div>
-  </div>
-
-  <!-- Pression + humidité -->
-  <div class="panel green col-span-2">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-      <div>
-        <div class="panel-label"><span class="icon">🔵</span> Pression barométrique</div>
-        <div class="big-value" id="pressure">--<span class="big-unit">hPa</span></div>
-        <div class="sub-row">
-          <div class="sub-item">
-            <div class="sub-label">Tendance</div>
-            <div class="sub-value" id="pressure-trend">--</div>
-          </div>
-          <div class="sub-item">
-            <div class="sub-label">Absolu</div>
-            <div class="sub-value" id="pressure-abs">-- hPa</div>
-          </div>
-        </div>
-        <div class="sparkline">
-          <svg id="spark-svg" viewBox="0 0 200 50" preserveAspectRatio="none">
-            <polyline id="spark-line" fill="none" stroke="var(--accent3)" stroke-width="1.5" points=""/>
-          </svg>
-        </div>
+    <div class="card-sub">
+      <div class="sub-item">
+        <div class="sub-label">Min 24h</div>
+        <div class="sub-val" id="val-water-min">--°</div>
       </div>
-      <div>
-        <div class="panel-label"><span class="icon">💧</span> Humidité extérieure</div>
-        <div class="big-value" id="hum-ext">--<span class="big-unit">%</span></div>
-        <div class="sub-row">
-          <div class="sub-item">
-            <div class="sub-label">Point de rosée</div>
-            <div class="sub-value" id="dew-ext">--°C</div>
-          </div>
-          <div class="sub-item">
-            <div class="sub-label">Indice UV</div>
-            <div class="sub-value" id="uv-index">--</div>
-          </div>
-          <div class="sub-item">
-            <div class="sub-label">Solaire W/m²</div>
-            <div class="sub-value" id="solar">--</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Graphiques 24h températures -->
-  <div class="panel col-span-3" style="animation-delay:0.6s;">
-    <div class="panel-label"><span class="icon">📊</span> Historique 24h — Températures</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
-      <div>
-        <div style="font-family:var(--cond);font-size:0.7rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.1em;text-transform:uppercase;">
-          Extérieure &nbsp;<span id="chart-ext-range" style="color:var(--accent)"></span>
-        </div>
-        <canvas id="chart-ext" height="110"></canvas>
-      </div>
-      <div>
-        <div style="font-family:var(--cond);font-size:0.7rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.1em;text-transform:uppercase;">
-          Intérieure &nbsp;<span id="chart-int-range" style="color:var(--accent3)"></span>
-        </div>
-        <canvas id="chart-int" height="110"></canvas>
+      <div class="sub-item">
+        <div class="sub-label">Max 24h</div>
+        <div class="sub-val" id="val-water-max">--°</div>
       </div>
     </div>
   </div>
 
 </div>
 
+<div class="charts">
+  <div class="chart-panel">
+    <div class="chart-label">
+      <span>Extérieure — 24h</span>
+      <span class="chart-range" id="range-ext">--</span>
+    </div>
+    <canvas id="chart-ext" height="140"></canvas>
+  </div>
+  <div class="chart-panel">
+    <div class="chart-label">
+      <span>Intérieure — 24h</span>
+      <span class="chart-range" id="range-int">--</span>
+    </div>
+    <canvas id="chart-int" height="140"></canvas>
+  </div>
+  <div class="chart-panel">
+    <div class="chart-label">
+      <span>Eau — 24h</span>
+      <span class="chart-range" id="range-water">--</span>
+    </div>
+    <canvas id="chart-water" height="140"></canvas>
+  </div>
+</div>
+
 <footer>
-  <div class="footer-text">GW2000 · API Ecowitt Cloud · Données météo Saint-Félicien QC</div>
-  <div id="last-update">Dernière mise à jour : --:--:--</div>
+  <div class="footer-left">GW3000B · Ecowitt Cloud</div>
+  <div id="status"><span class="dot" id="dot"></span><span id="status-text">Connexion…</span></div>
 </footer>
 
 <script>
-// ─── Horloge ───────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2,'0');
-  const m = String(now.getMinutes()).padStart(2,'0');
-  const s = String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+// ── Config ────────────────────────────────────────────────
+const APP_KEY  = '4E38524335ACBCBFA94809FD60EB2071';
+const API_KEY  = 'c6288d22-7592-4772-b9c9-e472e08e3421';
+const MAC      = '84:1F:E8:35:E4:93';
+const PROXY    = 'https://corsproxy.io/?';
+const INTERVAL = 60000; // 60s
+const MAX_PTS  = 288;   // 24h × 1pt/5min
 
-  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  const months = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
-  document.getElementById('date-str').textContent =
-    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+// ── Historique ────────────────────────────────────────────
+let hist = { ext: [], int: [], water: [] };
+let charts = {};
+let lastPush = 0;
+
+// ── Horloge ───────────────────────────────────────────────
+const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const MONTHS = ['jan','fév','mar','avr','mai','jun','jul','aoû','sep','oct','nov','déc'];
+
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    [n.getHours(), n.getMinutes(), n.getSeconds()]
+      .map(x => String(x).padStart(2,'0')).join(':');
+  document.getElementById('dateline').textContent =
+    `${DAYS[n.getDay()]} ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
 }
-setInterval(updateClock, 1000);
-updateClock();
+setInterval(tick, 1000);
+tick();
 
-// ─── Compass direction ─────────────────────────────────────
-function degToDir(deg) {
-  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
-  return dirs[Math.round(deg / 22.5) % 16];
-}
-
-// ─── Sparkline pression ────────────────────────────────────
-let pressureHistory = [];
-
-function updateSparkline(val) {
-  pressureHistory.push(val);
-  if (pressureHistory.length > 20) pressureHistory.shift();
-  const mn = Math.min(...pressureHistory);
-  const mx = Math.max(...pressureHistory) || mn + 1;
-  const pts = pressureHistory.map((v, i) => {
-    const x = (i / (pressureHistory.length - 1 || 1)) * 200;
-    const y = 48 - ((v - mn) / (mx - mn)) * 44;
-    return `${x},${y}`;
-  }).join(' ');
-  document.getElementById('spark-line').setAttribute('points', pts);
-}
-
-// ─── Données simulées (remplacées par Ecowitt API) ─────────
-function simulateEcowitt() {
-  const base = {
-    tempExt: -2 + Math.random() * 0.4 - 0.2,
-    tempInt: 20.5 + Math.random() * 0.2 - 0.1,
-    humExt: 78 + Math.floor(Math.random() * 3),
-    humInt: 42 + Math.floor(Math.random() * 2),
-    windSpeed: 14 + Math.random() * 4,
-    windDeg: 220 + Math.random() * 10,
-    windGust: 22 + Math.random() * 3,
-    pressure: 1013.2 + Math.random() * 0.3,
-    pressureAbs: 999.8,
-    rainRate: 0,
-    rainDaily: 2.4,
-    rainMonthly: 38.2,
-    uv: 1,
-    solar: 85,
-  };
-
-  // Temp ext
-  const te = base.tempExt.toFixed(1);
-  document.getElementById('temp-ext').innerHTML = `${te}<span class="big-unit">°C</span>`;
-  document.getElementById('temp-ressenti').textContent = `${(base.tempExt - 3).toFixed(1)}°`;
-  document.getElementById('temp-min').textContent = `-5.2°`;
-  document.getElementById('temp-max').textContent = `1.8°`;
-
-  // Anneau temp (plage -30 à +40 => 70 degrés)
-  const pct = Math.min(Math.max((base.tempExt + 30) / 70, 0), 1);
-  const circ = 2 * Math.PI * 30;
-  document.getElementById('temp-ring-fill').setAttribute('stroke-dashoffset', circ * (1 - pct * 0.75));
-
-  // Temp int
-  document.getElementById('temp-int').innerHTML = `${base.tempInt.toFixed(1)}<span class="big-unit">°C</span>`;
-  document.getElementById('hum-int').textContent = `${base.humInt}%`;
-  document.getElementById('dew-int').textContent = `${(base.tempInt - (100 - base.humInt) / 5).toFixed(1)}°`;
-
-  // Vent
-  document.getElementById('wind-speed').innerHTML = `${base.windSpeed.toFixed(0)}<span class="big-unit" style="font-size:0.8rem;">km/h</span>`;
-  document.getElementById('wind-gust').textContent = `${base.windGust.toFixed(0)} km/h`;
-  document.getElementById('wind-deg').textContent = `${base.windDeg.toFixed(0)}°`;
-  document.getElementById('wind-dir-label').textContent = degToDir(base.windDeg);
-  document.getElementById('wind-needle').style.transform =
-    `translateX(-50%) translateY(-100%) rotate(${base.windDeg}deg)`;
-
-  // Pluie
-  document.getElementById('rain-rate').innerHTML = `${base.rainRate.toFixed(1)}<span class="big-unit">mm/h</span>`;
-  document.getElementById('rain-daily').textContent = `${base.rainDaily} mm`;
-  document.getElementById('rain-monthly').textContent = `${base.rainMonthly} mm`;
-  document.getElementById('rain-bar-daily').style.width = `${Math.min(base.rainDaily / 30 * 100, 100)}%`;
-  document.getElementById('rain-bar-monthly').style.width = `${Math.min(base.rainMonthly / 150 * 100, 100)}%`;
-
-  // Pression
-  document.getElementById('pressure').innerHTML = `${base.pressure.toFixed(1)}<span class="big-unit">hPa</span>`;
-  document.getElementById('pressure-abs').textContent = `${base.pressureAbs.toFixed(1)} hPa`;
-  document.getElementById('pressure-trend').textContent = '→ Stable';
-  updateSparkline(base.pressure);
-
-  // Humidité ext
-  document.getElementById('hum-ext').innerHTML = `${base.humExt}<span class="big-unit">%</span>`;
-  document.getElementById('dew-ext').textContent = `${(base.tempExt - (100 - base.humExt) / 5).toFixed(1)}°C`;
-  document.getElementById('uv-index').textContent = base.uv;
-  document.getElementById('solar').textContent = base.solar;
-
-  // Heure mise à jour
-  const now = new Date();
-  document.getElementById('last-update').textContent =
-    `Dernière mise à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-  // Pousser dans l'historique toutes les 5 minutes seulement
-  const lastPush = simulateEcowitt._lastPush || 0;
-  if (Date.now() - lastPush >= 5 * 60 * 1000) {
-    pushToHistory(base.tempExt, base.tempInt);
-    simulateEcowitt._lastPush = Date.now();
-  }
-}
-
-// ─── Helpers affichage ────────────────────────────────────
-function fmtPrice(val, decimals = 0) {
-  return val.toLocaleString('fr-CA', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-}
-
-function setMarket(id, price, chgPct, extraFn) {
-  const priceEl = document.getElementById(`${id}-price`);
-  const chgEl   = document.getElementById(`${id}-chg`);
-  if (priceEl) priceEl.textContent = price;
-  if (chgEl) {
-    const sign = chgPct >= 0 ? '+' : '';
-    chgEl.textContent = `${sign}${chgPct.toFixed(2)}%`;
-    chgEl.className = `market-change ${chgPct >= 0 ? 'up' : 'down'}`;
-  }
-  if (extraFn) extraFn();
-}
-
-// ─── Bitcoin via CoinGecko (gratuit, sans clé) ─────────────
-async function fetchBTC() {
-  try {
-    const r = await fetch(
-      'https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false',
-      { headers: { 'Accept': 'application/json' } }
-    );
-    const d = await r.json();
-    const md = d.market_data;
-    const price = md.current_price.usd;
-    const chg   = md.price_change_percentage_24h;
-    const high  = md.high_24h.usd;
-    const low   = md.low_24h.usd;
-    const vol   = (md.total_volume.usd / 1e9).toFixed(1);
-
-    setMarket('btc', fmtPrice(price), chg, () => {
-      const h = document.getElementById('btc-high');
-      const l = document.getElementById('btc-low');
-      const v = document.getElementById('btc-vol');
-      if (h) h.textContent = fmtPrice(high);
-      if (l) l.textContent = fmtPrice(low);
-      if (v) v.textContent = vol;
-    });
-  } catch(e) {
-    console.warn('BTC fetch error:', e);
-    document.getElementById('btc-price').textContent = 'Erreur API';
-  }
-}
-
-// ─── Nasdaq 100 via Yahoo Finance (proxy public) ───────────
-async function fetchNQ() {
-  try {
-    // Yahoo Finance v8 — proxy CORS nécessaire sur GitHub Pages
-    const symbol = 'NQ%3DF';  // NQ Futures continu
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2d`;
-    const r = await fetch(url);
-    const d = await r.json();
-    const meta   = d.chart.result[0].meta;
-    const price  = meta.regularMarketPrice;
-    const prev   = meta.chartPreviousClose || meta.previousClose;
-    const chg    = ((price - prev) / prev) * 100;
-    const open   = meta.regularMarketOpen   || prev;
-    const high   = meta.regularMarketDayHigh || price;
-    const low    = meta.regularMarketDayLow  || price;
-
-    // Statut marché
-    const statusEl = document.getElementById('market-status');
-    if (statusEl) {
-      const state = meta.marketState;
-      statusEl.textContent = state === 'REGULAR' ? '🟢 OUVERT' : state === 'PRE' ? '🟡 PRÉ-MARCHÉ' : '🔴 FERMÉ';
-      statusEl.style.color = state === 'REGULAR' ? 'var(--accent3)' : state === 'PRE' ? 'var(--warn)' : 'var(--muted)';
-    }
-
-    setMarket('mnq', fmtPrice(price), chg, () => {
-      const o = document.getElementById('mnq-open');
-      const h = document.getElementById('mnq-high');
-      const l = document.getElementById('mnq-low');
-      if (o) o.textContent = fmtPrice(open);
-      if (h) h.textContent = fmtPrice(high);
-      if (l) l.textContent = fmtPrice(low);
-    });
-  } catch(e) {
-    console.warn('NQ fetch error:', e);
-    // Yahoo Finance bloque le CORS depuis certains hébergeurs — on affiche un fallback propre
-    document.getElementById('mnq-price').innerHTML =
-      '<span style="font-size:0.75rem;color:var(--muted)">Via widget ↓</span>';
-    document.getElementById('mnq-chg').textContent = '';
-  }
-}
-
-// ─── Historique 24h températures ──────────────────────────
-const HISTORY_MAX = 288; // 24h à 1 point/5min
-let histExt = [];
-let histInt = [];
-let chartExt = null;
-let chartInt = null;
-
-// Génère des données simulées pour les 24 dernières heures
-function initFakeHistory() {
-  const now = Date.now();
-  const interval = 5 * 60 * 1000; // 5 min
-  for (let i = HISTORY_MAX; i >= 0; i--) {
-    const t = now - i * interval;
-    const hour = new Date(t).getHours();
-    // Courbe réaliste : froid la nuit, plus chaud l'après-midi
-    const baseExt = -4 + 3 * Math.sin((hour - 6) / 24 * 2 * Math.PI) + (Math.random() - 0.5) * 0.6;
-    const baseInt = 20.5 + 0.8 * Math.sin((hour - 8) / 24 * 2 * Math.PI) + (Math.random() - 0.5) * 0.2;
-    histExt.push({ t, v: parseFloat(baseExt.toFixed(1)) });
-    histInt.push({ t, v: parseFloat(baseInt.toFixed(1)) });
-  }
-}
-
-function buildChartConfig(history, color, fillColor, labelId) {
-  const labels = history.map(p => {
-    const d = new Date(p.t);
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  });
-  const data = history.map(p => p.v);
-  const mn = Math.min(...data);
-  const mx = Math.max(...data);
-  if (labelId) {
-    const el = document.getElementById(labelId);
-    if (el) el.textContent = `min ${mn.toFixed(1)}° / max ${mx.toFixed(1)}°`;
-  }
-
-  return {
+// ── Chart factory ─────────────────────────────────────────
+function makeChart(id, color) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
+      labels: [],
       datasets: [{
-        data,
+        data: [],
         borderColor: color,
-        backgroundColor: fillColor,
+        backgroundColor: color.replace(')', ', 0.07)').replace('rgb', 'rgba'),
         borderWidth: 1.5,
         pointRadius: 0,
-        pointHoverRadius: 4,
+        pointHoverRadius: 3,
         tension: 0.3,
         fill: true,
       }]
     },
     options: {
       responsive: true,
-      animation: { duration: 400 },
+      animation: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#0f1419',
+          backgroundColor: '#0f1519',
           borderColor: color,
           borderWidth: 1,
-          titleColor: '#c8d8e4',
+          titleColor: '#8aa8be',
           bodyColor: color,
-          titleFont: { family: "'Share Tech Mono'" },
-          bodyFont: { family: "'Share Tech Mono'" },
-          callbacks: {
-            label: ctx => ` ${ctx.parsed.y.toFixed(1)} °C`
-          }
+          titleFont: { family: 'Share Tech Mono' },
+          bodyFont: { family: 'Share Tech Mono' },
+          callbacks: { label: c => ` ${c.parsed.y.toFixed(1)} °C` }
         }
       },
       scales: {
         x: {
-          grid: { color: '#1e2d3a', drawTicks: false },
-          ticks: {
-            color: '#4a6478',
-            font: { family: "'Share Tech Mono'", size: 9 },
-            maxTicksLimit: 12,
-            maxRotation: 0,
-          },
-          border: { color: '#1e2d3a' }
+          grid: { color: '#141c23' },
+          ticks: { color: '#2e4557', font: { family: 'Share Tech Mono', size: 9 }, maxTicksLimit: 8, maxRotation: 0 },
+          border: { color: '#1a2530' }
         },
         y: {
-          grid: { color: '#1e2d3a' },
-          ticks: {
-            color: '#4a6478',
-            font: { family: "'Share Tech Mono'", size: 9 },
-            callback: v => `${v.toFixed(1)}°`
-          },
-          border: { color: '#1e2d3a' }
+          grid: { color: '#141c23' },
+          ticks: { color: '#2e4557', font: { family: 'Share Tech Mono', size: 9 }, callback: v => `${v.toFixed(0)}°` },
+          border: { color: '#1a2530' }
         }
       }
     }
-  };
+  });
 }
 
 function initCharts() {
-  const ctxExt = document.getElementById('chart-ext').getContext('2d');
-  const ctxInt = document.getElementById('chart-int').getContext('2d');
-
-  chartExt = new Chart(ctxExt, buildChartConfig(
-    histExt, '#00c8ff',
-    'rgba(0,200,255,0.08)',
-    'chart-ext-range'
-  ));
-  chartInt = new Chart(ctxInt, buildChartConfig(
-    histInt, '#39d98a',
-    'rgba(57,217,138,0.08)',
-    'chart-int-range'
-  ));
+  charts.ext   = makeChart('chart-ext',   'rgb(0, 200, 255)');
+  charts.int   = makeChart('chart-int',   'rgb(57, 217, 138)');
+  charts.water = makeChart('chart-water', 'rgb(123, 97, 255)');
 }
 
-function pushToHistory(tempExt, tempInt) {
-  const now = Date.now();
-  histExt.push({ t: now, v: tempExt });
-  histInt.push({ t: now, v: tempInt });
-  if (histExt.length > HISTORY_MAX) { histExt.shift(); histInt.shift(); }
+// ── Mettre à jour un graphique ────────────────────────────
+function updateChart(key, rangeId) {
+  const h = hist[key];
+  if (!h.length || !charts[key]) return;
 
-  if (!chartExt || !chartInt) return;
-
-  const fmtTime = ts => {
+  const fmt = ts => {
     const d = new Date(ts);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   };
 
-  chartExt.data.labels = histExt.map(p => fmtTime(p.t));
-  chartExt.data.datasets[0].data = histExt.map(p => p.v);
-  chartInt.data.labels = histInt.map(p => fmtTime(p.t));
-  chartInt.data.datasets[0].data = histInt.map(p => p.v);
+  charts[key].data.labels = h.map(p => fmt(p.t));
+  charts[key].data.datasets[0].data = h.map(p => p.v);
+  charts[key].update('none');
 
-  chartExt.update('none');
-  chartInt.update('none');
-
-  // Mise à jour min/max labels
-  const extVals = histExt.map(p => p.v);
-  const intVals = histInt.map(p => p.v);
-  const extEl = document.getElementById('chart-ext-range');
-  const intEl = document.getElementById('chart-int-range');
-  if (extEl) extEl.textContent = `min ${Math.min(...extVals).toFixed(1)}° / max ${Math.max(...extVals).toFixed(1)}°`;
-  if (intEl) intEl.textContent = `min ${Math.min(...intVals).toFixed(1)}° / max ${Math.max(...intVals).toFixed(1)}°`;
+  const vals = h.map(p => p.v);
+  document.getElementById(rangeId).textContent =
+    `↓ ${Math.min(...vals).toFixed(1)}°  ↑ ${Math.max(...vals).toFixed(1)}°`;
 }
 
-// Init historique simulé + graphiques
-initFakeHistory();
-window.addEventListener('DOMContentLoaded', () => { initCharts(); });
-// Fallback si DOMContentLoaded déjà passé
-if (document.readyState !== 'loading') { setTimeout(initCharts, 100); }
-
-
-// ─── Ecowitt Cloud API ─────────────────────────────────────
-const ECOWITT_APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
-const ECOWITT_API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
-const ECOWITT_MAC     = '84:1F:E8:35:E4:93';
-
-// Proxy CORS public pour contourner les restrictions navigateur
-const CORS_PROXY = 'https://corsproxy.io/?';
-
-function val(obj, key, fallback = null) {
-  return obj && obj[key] && obj[key].value !== undefined ? obj[key].value : fallback;
+// ── Helpers ───────────────────────────────────────────────
+function setVal(id, v, decimals = 1) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v !== null ? parseFloat(v).toFixed(decimals) : '--';
 }
 
+function ecowittVal(obj, key) {
+  return obj && obj[key] && obj[key].value !== undefined
+    ? parseFloat(obj[key].value) : null;
+}
+
+function minMax(key, id_min, id_max) {
+  const vals = hist[key].map(p => p.v);
+  if (!vals.length) return;
+  document.getElementById(id_min).textContent = `${Math.min(...vals).toFixed(1)}°`;
+  document.getElementById(id_max).textContent = `${Math.max(...vals).toFixed(1)}°`;
+}
+
+// ── Fetch Ecowitt ─────────────────────────────────────────
 async function fetchEcowitt() {
+  const dot  = document.getElementById('dot');
+  const stxt = document.getElementById('status-text');
   try {
-    const url = CORS_PROXY + encodeURIComponent(
+    const apiUrl =
       `https://api.ecowitt.net/api/v3/device/real_time` +
-      `?application_key=${ECOWITT_APP_KEY}` +
-      `&api_key=${ECOWITT_API_KEY}` +
-      `&mac=${ECOWITT_MAC}` +
+      `?application_key=${APP_KEY}` +
+      `&api_key=${API_KEY}` +
+      `&mac=${MAC}` +
       `&call_back=all` +
-      `&temp_unitid=1` +   // Celsius
-      `&pressure_unitid=3` + // hPa
-      `&wind_speed_unitid=7` + // km/h
-      `&rainfall_unitid=12`  // mm
-    );
+      `&temp_unitid=1` +
+      `&pressure_unitid=3` +
+      `&wind_speed_unitid=7` +
+      `&rainfall_unitid=12`;
 
-    const res  = await fetch(url);
+    const res  = await fetch(PROXY + encodeURIComponent(apiUrl));
     const json = await res.json();
 
-    if (json.code !== 0) {
-      console.warn('Ecowitt API erreur:', json.msg);
-      // Fallback simulation si erreur API
-      simulateEcowitt();
-      return;
+    if (json.code !== 0) throw new Error(json.msg || 'API error');
+
+    const d     = json.data;
+    const out   = d.outdoor   || {};
+    const inn   = d.indoor    || {};
+    const wat   = d.water_temp || d.soil_ch1 || {}; // capteur eau
+
+    const tempExt   = ecowittVal(out, 'temperature');
+    const feelsLike = ecowittVal(out, 'feels_like') ?? tempExt;
+    const tempInt   = ecowittVal(inn, 'temperature');
+    const tempWater = ecowittVal(wat, 'temperature');
+
+    // Affichage valeurs
+    setVal('val-ext',   tempExt);
+    setVal('val-feels', feelsLike);
+    setVal('val-int',   tempInt);
+    setVal('val-water', tempWater);
+
+    // Historique (toutes les 5 min)
+    const now = Date.now();
+    if (now - lastPush >= 5 * 60 * 1000) {
+      if (tempExt   !== null) { hist.ext.push({t: now, v: tempExt});   if (hist.ext.length   > MAX_PTS) hist.ext.shift();   }
+      if (tempInt   !== null) { hist.int.push({t: now, v: tempInt});   if (hist.int.length   > MAX_PTS) hist.int.shift();   }
+      if (tempWater !== null) { hist.water.push({t: now, v: tempWater}); if (hist.water.length > MAX_PTS) hist.water.shift(); }
+      lastPush = now;
+      updateChart('ext',   'range-ext');
+      updateChart('int',   'range-int');
+      updateChart('water', 'range-water');
+      minMax('ext',   'val-ext-min',   'val-ext-max');
+      minMax('int',   'val-int-min',   'val-int-max');
+      minMax('water', 'val-water-min', 'val-water-max');
     }
 
-    const d = json.data;
-    const out  = d.outdoor        || {};
-    const inn  = d.indoor         || {};
-    const wind = d.wind           || {};
-    const rain = d.rainfall       || {};
-    const pres = d.pressure       || {};
-    const sol  = d.solar_and_uvi  || {};
-    const wat  = d.water_temp     || {};  // capteur eau
-
-    // ── Température extérieure
-    const tempExt = parseFloat(val(out, 'temperature', 0));
-    const humExt  = parseFloat(val(out, 'humidity', 0));
-    const feelsLike = parseFloat(val(out, 'feels_like', tempExt));
-    const dewExt  = parseFloat(val(out, 'dew_point', 0));
-
-    document.getElementById('temp-ext').innerHTML = `${tempExt.toFixed(1)}<span class="big-unit">°C</span>`;
-    document.getElementById('temp-ressenti').textContent = `${feelsLike.toFixed(1)}°`;
-
-    // Min/max via historique local
-    const extVals = histExt.map(p => p.v);
-    if (extVals.length) {
-      document.getElementById('temp-min').textContent = `${Math.min(...extVals).toFixed(1)}°`;
-      document.getElementById('temp-max').textContent = `${Math.max(...extVals).toFixed(1)}°`;
-    }
-
-    // Anneau temp (plage -30 à +40)
-    const pct = Math.min(Math.max((tempExt + 30) / 70, 0), 1);
-    const circ = 2 * Math.PI * 30;
-    document.getElementById('temp-ring-fill').setAttribute('stroke-dashoffset', circ * (1 - pct * 0.75));
-
-    // ── Température intérieure
-    const tempInt = parseFloat(val(inn, 'temperature', 0));
-    const humInt  = parseFloat(val(inn, 'humidity', 0));
-    const dewInt  = parseFloat(val(inn, 'dew_point', 0));
-
-    document.getElementById('temp-int').innerHTML = `${tempInt.toFixed(1)}<span class="big-unit">°C</span>`;
-    document.getElementById('hum-int').textContent = `${humInt.toFixed(0)}%`;
-    document.getElementById('dew-int').textContent = `${dewInt.toFixed(1)}°`;
-
-    // ── Vent
-    const windSpeed = parseFloat(val(wind, 'wind_speed', 0));
-    const windGust  = parseFloat(val(wind, 'wind_gust', 0));
-    const windDeg   = parseFloat(val(wind, 'wind_direction', 0));
-
-    document.getElementById('wind-speed').innerHTML = `${windSpeed.toFixed(0)}<span class="big-unit" style="font-size:0.8rem;">km/h</span>`;
-    document.getElementById('wind-gust').textContent = `${windGust.toFixed(0)} km/h`;
-    document.getElementById('wind-deg').textContent = `${windDeg.toFixed(0)}°`;
-    document.getElementById('wind-dir-label').textContent = degToDir(windDeg);
-    document.getElementById('wind-needle').style.transform =
-      `translateX(-50%) translateY(-100%) rotate(${windDeg}deg)`;
-
-    // ── Pluie
-    const rainRate    = parseFloat(val(rain, 'rain_rate', 0));
-    const rainDaily   = parseFloat(val(rain, 'daily', 0));
-    const rainMonthly = parseFloat(val(rain, 'monthly', 0));
-
-    document.getElementById('rain-rate').innerHTML = `${rainRate.toFixed(1)}<span class="big-unit">mm/h</span>`;
-    document.getElementById('rain-daily').textContent = `${rainDaily.toFixed(1)} mm`;
-    document.getElementById('rain-monthly').textContent = `${rainMonthly.toFixed(1)} mm`;
-    document.getElementById('rain-bar-daily').style.width = `${Math.min(rainDaily / 30 * 100, 100)}%`;
-    document.getElementById('rain-bar-monthly').style.width = `${Math.min(rainMonthly / 150 * 100, 100)}%`;
-
-    // ── Pression
-    const pressRel = parseFloat(val(pres, 'relative', 0));
-    const pressAbs = parseFloat(val(pres, 'absolute', 0));
-
-    document.getElementById('pressure').innerHTML = `${pressRel.toFixed(1)}<span class="big-unit">hPa</span>`;
-    document.getElementById('pressure-abs').textContent = `${pressAbs.toFixed(1)} hPa`;
-    updateSparkline(pressRel);
-
-    // Tendance pression
-    if (pressureHistory.length >= 6) {
-      const recent = pressureHistory.slice(-1)[0];
-      const older  = pressureHistory.slice(-6)[0];
-      const diff   = recent - older;
-      document.getElementById('pressure-trend').textContent =
-        diff > 0.5 ? '↑ Hausse' : diff < -0.5 ? '↓ Baisse' : '→ Stable';
-    }
-
-    // ── Humidité / UV / Solaire
-    document.getElementById('hum-ext').innerHTML = `${humExt.toFixed(0)}<span class="big-unit">%</span>`;
-    document.getElementById('dew-ext').textContent = `${dewExt.toFixed(1)}°C`;
-    document.getElementById('uv-index').textContent = val(sol, 'uvi', '--');
-    document.getElementById('solar').textContent = val(sol, 'solar', '--');
-
-    // ── Capteur eau (CH affichage dans sub-row intérieur si disponible)
-    const tempWater = val(wat, 'temperature', null);
-    if (tempWater !== null) {
-      const waterEl = document.getElementById('temp-water');
-      if (waterEl) waterEl.textContent = `${parseFloat(tempWater).toFixed(1)}°C`;
-    }
-
-    // ── Heure mise à jour
-    const now = new Date();
-    document.getElementById('last-update').textContent =
-      `Ecowitt Live · Mis à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-
-    // ── Historique graphiques (toutes les 5 min)
-    const lastPush = fetchEcowitt._lastPush || 0;
-    if (Date.now() - lastPush >= 5 * 60 * 1000) {
-      pushToHistory(tempExt, tempInt);
-      fetchEcowitt._lastPush = Date.now();
-    }
+    // Statut
+    const t = new Date();
+    dot.className = 'dot';
+    stxt.textContent = `Mis à jour ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
 
   } catch(e) {
-    console.warn('Ecowitt fetch error:', e);
-    simulateEcowitt(); // fallback simulation
+    console.warn('Ecowitt error:', e);
+    dot.className = 'dot err';
+    stxt.textContent = 'Erreur connexion';
   }
 }
 
-// ─── Init & refresh ────────────────────────────────────────
-fetchEcowitt();           // données réelles au démarrage
-fetchBTC();
-fetchNQ();
-setInterval(fetchEcowitt, 60000);  // Ecowitt toutes les 60s
-setInterval(fetchBTC, 60000);      // BTC toutes les 60s
-setInterval(fetchNQ, 60000);       // NQ toutes les 60s
+// ── Démarrage ─────────────────────────────────────────────
+initCharts();
+fetchEcowitt();
+setInterval(fetchEcowitt, INTERVAL);
 </script>
 </body>
 </html>
