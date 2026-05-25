@@ -433,6 +433,10 @@
         <div class="sub-label">Point rosée</div>
         <div class="sub-value" id="dew-int">--°</div>
       </div>
+      <div class="sub-item">
+        <div class="sub-label">💧 Eau</div>
+        <div class="sub-value" id="temp-water">--°C</div>
+      </div>
     </div>
   </div>
 
@@ -943,36 +947,159 @@ window.addEventListener('DOMContentLoaded', () => { initCharts(); });
 if (document.readyState !== 'loading') { setTimeout(initCharts, 100); }
 
 
-simulateEcowitt();
+// ─── Ecowitt Cloud API ─────────────────────────────────────
+const ECOWITT_APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
+const ECOWITT_API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
+const ECOWITT_MAC     = '84:1F:E8:35:E4:93';
+
+// Proxy CORS public pour contourner les restrictions navigateur
+const CORS_PROXY = 'https://corsproxy.io/?';
+
+function val(obj, key, fallback = null) {
+  return obj && obj[key] && obj[key].value !== undefined ? obj[key].value : fallback;
+}
+
+async function fetchEcowitt() {
+  try {
+    const url = CORS_PROXY + encodeURIComponent(
+      `https://api.ecowitt.net/api/v3/device/real_time` +
+      `?application_key=${ECOWITT_APP_KEY}` +
+      `&api_key=${ECOWITT_API_KEY}` +
+      `&mac=${ECOWITT_MAC}` +
+      `&call_back=all` +
+      `&temp_unitid=1` +   // Celsius
+      `&pressure_unitid=3` + // hPa
+      `&wind_speed_unitid=7` + // km/h
+      `&rainfall_unitid=12`  // mm
+    );
+
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    if (json.code !== 0) {
+      console.warn('Ecowitt API erreur:', json.msg);
+      // Fallback simulation si erreur API
+      simulateEcowitt();
+      return;
+    }
+
+    const d = json.data;
+    const out  = d.outdoor        || {};
+    const inn  = d.indoor         || {};
+    const wind = d.wind           || {};
+    const rain = d.rainfall       || {};
+    const pres = d.pressure       || {};
+    const sol  = d.solar_and_uvi  || {};
+    const wat  = d.water_temp     || {};  // capteur eau
+
+    // ── Température extérieure
+    const tempExt = parseFloat(val(out, 'temperature', 0));
+    const humExt  = parseFloat(val(out, 'humidity', 0));
+    const feelsLike = parseFloat(val(out, 'feels_like', tempExt));
+    const dewExt  = parseFloat(val(out, 'dew_point', 0));
+
+    document.getElementById('temp-ext').innerHTML = `${tempExt.toFixed(1)}<span class="big-unit">°C</span>`;
+    document.getElementById('temp-ressenti').textContent = `${feelsLike.toFixed(1)}°`;
+
+    // Min/max via historique local
+    const extVals = histExt.map(p => p.v);
+    if (extVals.length) {
+      document.getElementById('temp-min').textContent = `${Math.min(...extVals).toFixed(1)}°`;
+      document.getElementById('temp-max').textContent = `${Math.max(...extVals).toFixed(1)}°`;
+    }
+
+    // Anneau temp (plage -30 à +40)
+    const pct = Math.min(Math.max((tempExt + 30) / 70, 0), 1);
+    const circ = 2 * Math.PI * 30;
+    document.getElementById('temp-ring-fill').setAttribute('stroke-dashoffset', circ * (1 - pct * 0.75));
+
+    // ── Température intérieure
+    const tempInt = parseFloat(val(inn, 'temperature', 0));
+    const humInt  = parseFloat(val(inn, 'humidity', 0));
+    const dewInt  = parseFloat(val(inn, 'dew_point', 0));
+
+    document.getElementById('temp-int').innerHTML = `${tempInt.toFixed(1)}<span class="big-unit">°C</span>`;
+    document.getElementById('hum-int').textContent = `${humInt.toFixed(0)}%`;
+    document.getElementById('dew-int').textContent = `${dewInt.toFixed(1)}°`;
+
+    // ── Vent
+    const windSpeed = parseFloat(val(wind, 'wind_speed', 0));
+    const windGust  = parseFloat(val(wind, 'wind_gust', 0));
+    const windDeg   = parseFloat(val(wind, 'wind_direction', 0));
+
+    document.getElementById('wind-speed').innerHTML = `${windSpeed.toFixed(0)}<span class="big-unit" style="font-size:0.8rem;">km/h</span>`;
+    document.getElementById('wind-gust').textContent = `${windGust.toFixed(0)} km/h`;
+    document.getElementById('wind-deg').textContent = `${windDeg.toFixed(0)}°`;
+    document.getElementById('wind-dir-label').textContent = degToDir(windDeg);
+    document.getElementById('wind-needle').style.transform =
+      `translateX(-50%) translateY(-100%) rotate(${windDeg}deg)`;
+
+    // ── Pluie
+    const rainRate    = parseFloat(val(rain, 'rain_rate', 0));
+    const rainDaily   = parseFloat(val(rain, 'daily', 0));
+    const rainMonthly = parseFloat(val(rain, 'monthly', 0));
+
+    document.getElementById('rain-rate').innerHTML = `${rainRate.toFixed(1)}<span class="big-unit">mm/h</span>`;
+    document.getElementById('rain-daily').textContent = `${rainDaily.toFixed(1)} mm`;
+    document.getElementById('rain-monthly').textContent = `${rainMonthly.toFixed(1)} mm`;
+    document.getElementById('rain-bar-daily').style.width = `${Math.min(rainDaily / 30 * 100, 100)}%`;
+    document.getElementById('rain-bar-monthly').style.width = `${Math.min(rainMonthly / 150 * 100, 100)}%`;
+
+    // ── Pression
+    const pressRel = parseFloat(val(pres, 'relative', 0));
+    const pressAbs = parseFloat(val(pres, 'absolute', 0));
+
+    document.getElementById('pressure').innerHTML = `${pressRel.toFixed(1)}<span class="big-unit">hPa</span>`;
+    document.getElementById('pressure-abs').textContent = `${pressAbs.toFixed(1)} hPa`;
+    updateSparkline(pressRel);
+
+    // Tendance pression
+    if (pressureHistory.length >= 6) {
+      const recent = pressureHistory.slice(-1)[0];
+      const older  = pressureHistory.slice(-6)[0];
+      const diff   = recent - older;
+      document.getElementById('pressure-trend').textContent =
+        diff > 0.5 ? '↑ Hausse' : diff < -0.5 ? '↓ Baisse' : '→ Stable';
+    }
+
+    // ── Humidité / UV / Solaire
+    document.getElementById('hum-ext').innerHTML = `${humExt.toFixed(0)}<span class="big-unit">%</span>`;
+    document.getElementById('dew-ext').textContent = `${dewExt.toFixed(1)}°C`;
+    document.getElementById('uv-index').textContent = val(sol, 'uvi', '--');
+    document.getElementById('solar').textContent = val(sol, 'solar', '--');
+
+    // ── Capteur eau (CH affichage dans sub-row intérieur si disponible)
+    const tempWater = val(wat, 'temperature', null);
+    if (tempWater !== null) {
+      const waterEl = document.getElementById('temp-water');
+      if (waterEl) waterEl.textContent = `${parseFloat(tempWater).toFixed(1)}°C`;
+    }
+
+    // ── Heure mise à jour
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      `Ecowitt Live · Mis à jour : ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    // ── Historique graphiques (toutes les 5 min)
+    const lastPush = fetchEcowitt._lastPush || 0;
+    if (Date.now() - lastPush >= 5 * 60 * 1000) {
+      pushToHistory(tempExt, tempInt);
+      fetchEcowitt._lastPush = Date.now();
+    }
+
+  } catch(e) {
+    console.warn('Ecowitt fetch error:', e);
+    simulateEcowitt(); // fallback simulation
+  }
+}
+
+// ─── Init & refresh ────────────────────────────────────────
+fetchEcowitt();           // données réelles au démarrage
 fetchBTC();
 fetchNQ();
-setInterval(simulateEcowitt, 15000);  // météo toutes les 15s
-setInterval(fetchBTC, 60000);         // BTC toutes les 60s (limite CoinGecko gratuit)
-setInterval(fetchNQ, 60000);          // NQ toutes les 60s
-
-/*
- * ════════════════════════════════════════════════════════
- *  INTÉGRATION ECOWITT CLOUD — décommenter quand prêt
- * ════════════════════════════════════════════════════════
- *
- * const ECOWITT_APP_KEY = 'VOTRE_APP_KEY';
- * const ECOWITT_API_KEY = 'VOTRE_API_KEY';
- * const ECOWITT_MAC     = 'AA:BB:CC:DD:EE:FF';  // MAC du GW2000
- *
- * async function fetchEcowitt() {
- *   const url = `https://api.ecowitt.net/api/v3/device/real_time` +
- *     `?application_key=${ECOWITT_APP_KEY}` +
- *     `&api_key=${ECOWITT_API_KEY}` +
- *     `&mac=${ECOWITT_MAC}` +
- *     `&call_back=all`;
- *   const res = await fetch(url);
- *   const json = await res.json();
- *   // Mapper json.data.outdoor.temperature.value → temp-ext, etc.
- * }
- *
- * setInterval(fetchEcowitt, 60000);
- * fetchEcowitt();
- */
+setInterval(fetchEcowitt, 60000);  // Ecowitt toutes les 60s
+setInterval(fetchBTC, 60000);      // BTC toutes les 60s
+setInterval(fetchNQ, 60000);       // NQ toutes les 60s
 </script>
 </body>
 </html>
