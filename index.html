@@ -9,68 +9,87 @@
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:#111; color:#fff; font-family:monospace; }
 
+  /* ── Cartes ── */
   .cards {
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:1px;
-    background:#222;
-    border-bottom:1px solid #222;
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:#222; border-bottom:1px solid #222;
   }
-
-  .card {
-    background:#161616;
-    padding:24px;
-    border-top:2px solid var(--c);
-  }
-
+  .card { background:#161616; padding:24px; border-top:3px solid var(--c); }
   .label { font-size:0.7rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:8px; }
   .val   { font-size:3.2rem; color:var(--c); line-height:1; }
   .unit  { font-size:1rem; color:#444; }
-  .sub   { margin-top:10px; font-size:0.8rem; color:#555; }
-  .sub span { color:#888; margin-right:12px; }
+  .sub   { margin-top:10px; font-size:0.8rem; color:#666; display:flex; gap:12px; flex-wrap:wrap; }
 
-  .charts {
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:1px;
-    background:#222;
+  /* ── Barre période + couleur ── */
+  .toolbar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 20px; background:#141414; border-bottom:1px solid #222;
+    flex-wrap:wrap; gap:8px;
   }
-
-  .cpanel {
-    background:#111;
-    padding:16px 20px;
+  .period-btns { display:flex; gap:6px; }
+  .pbtn {
+    background:#1e1e1e; border:1px solid #333; color:#888;
+    padding:5px 14px; font-family:monospace; font-size:0.8rem;
+    cursor:pointer; border-radius:3px; transition:all 0.15s;
   }
+  .pbtn:hover { border-color:#555; color:#ccc; }
+  .pbtn.active { background:#222; border-color:var(--ac,#00c8ff); color:var(--ac,#00c8ff); }
 
+  .color-btns { display:flex; gap:6px; align-items:center; }
+  .color-btns span { font-size:0.7rem; color:#444; margin-right:4px; }
+  .cbtn {
+    width:22px; height:22px; border-radius:50%; cursor:pointer;
+    border:2px solid transparent; transition:border 0.15s;
+  }
+  .cbtn:hover, .cbtn.active { border-color:#fff; }
+
+  /* ── Grille graphiques ── */
+  .chart-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:#222;
+  }
+  .cpanel { background:#111; padding:14px 18px 10px; }
   .clabel {
-    font-size:0.65rem;
-    color:#444;
-    letter-spacing:0.15em;
-    text-transform:uppercase;
-    margin-bottom:8px;
-    display:flex;
-    justify-content:space-between;
+    font-size:0.65rem; color:#444; letter-spacing:0.12em;
+    text-transform:uppercase; margin-bottom:6px;
+    display:flex; justify-content:space-between;
+  }
+  .crng { color:#555; }
+
+  /* Tooltip crosshair custom */
+  .chart-tooltip {
+    position:absolute; pointer-events:none;
+    background:#161616; border:1px solid #333;
+    padding:6px 10px; font-size:0.75rem; color:#ccc;
+    border-radius:3px; white-space:nowrap; z-index:10;
+    display:none;
   }
 
+  /* ── Humidité ── */
+  .hum-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1px; background:#222; border-top:1px solid #222;
+  }
+  .hpanel { background:#111; padding:14px 18px 10px; }
+
+  /* ── Footer ── */
   footer {
-    padding:10px 20px;
-    font-size:0.7rem;
-    color:#333;
-    border-top:1px solid #1a1a1a;
-    display:flex;
-    justify-content:space-between;
+    padding:10px 20px; font-size:0.7rem; color:#333;
+    border-top:1px solid #1a1a1a; display:flex; justify-content:space-between;
   }
 
-  @media(max-width:600px){
-    .cards,.charts{ grid-template-columns:1fr; }
-    .val{ font-size:2.5rem; }
+  @media(max-width:700px){
+    .cards,.chart-grid,.hum-grid { grid-template-columns:1fr; }
+    .val { font-size:2.5rem; }
   }
 </style>
 </head>
 <body>
 
+<!-- Cartes valeurs actuelles -->
 <div class="cards">
-  <div class="card" style="--c:#00c8ff">
-    <div class="label">Extérieure (CH1)</div>
+  <div class="card" id="card-ext" style="--c:#00c8ff">
+    <div class="label">Extérieure</div>
     <div class="val" id="val-ext">--<span class="unit">°C</span></div>
     <div class="sub">
       <span id="hum-ext"></span>
@@ -78,7 +97,7 @@
       <span id="max-ext"></span>
     </div>
   </div>
-  <div class="card" style="--c:#39d98a">
+  <div class="card" id="card-int" style="--c:#39d98a">
     <div class="label">Intérieure</div>
     <div class="val" id="val-int">--<span class="unit">°C</span></div>
     <div class="sub">
@@ -87,8 +106,8 @@
       <span id="max-int"></span>
     </div>
   </div>
-  <div class="card" style="--c:#7b61ff">
-    <div class="label">Eau (CH2)</div>
+  <div class="card" id="card-water" style="--c:#7b61ff">
+    <div class="label">Eau</div>
     <div class="val" id="val-water">--<span class="unit">°C</span></div>
     <div class="sub">
       <span id="min-water"></span>
@@ -97,18 +116,53 @@
   </div>
 </div>
 
-<div class="charts">
+<!-- Barre outils -->
+<div class="toolbar">
+  <div class="period-btns">
+    <button class="pbtn active" data-p="1j">1J</button>
+    <button class="pbtn" data-p="1m">1M</button>
+    <button class="pbtn" data-p="3m">3M</button>
+    <button class="pbtn" data-p="1a">1A</button>
+  </div>
+  <div class="color-btns">
+    <span>Couleurs :</span>
+    <div class="cbtn active" data-theme="defaut"  style="background:linear-gradient(135deg,#00c8ff,#39d98a,#7b61ff)" title="Défaut"></div>
+    <div class="cbtn" data-theme="chaud"   style="background:linear-gradient(135deg,#ff6b35,#f5c542,#ff3366)" title="Chaud"></div>
+    <div class="cbtn" data-theme="froid"   style="background:linear-gradient(135deg,#00b4d8,#90e0ef,#caf0f8)" title="Froid"></div>
+    <div class="cbtn" data-theme="mono"    style="background:linear-gradient(135deg,#aaa,#888,#555)" title="Mono"></div>
+    <div class="cbtn" data-theme="nature"  style="background:linear-gradient(135deg,#2d6a4f,#74c69d,#b7e4c7)" title="Nature"></div>
+  </div>
+</div>
+
+<!-- Graphiques température -->
+<div class="chart-grid">
   <div class="cpanel">
-    <div class="clabel"><span>Extérieure — 24h</span><span id="rng-ext"></span></div>
-    <canvas id="chart-ext" height="120"></canvas>
+    <div class="clabel"><span>Extérieure</span><span class="crng" id="rng-ext"></span></div>
+    <canvas id="chart-ext" height="130"></canvas>
   </div>
   <div class="cpanel">
-    <div class="clabel"><span>Intérieure — 24h</span><span id="rng-int"></span></div>
-    <canvas id="chart-int" height="120"></canvas>
+    <div class="clabel"><span>Intérieure</span><span class="crng" id="rng-int"></span></div>
+    <canvas id="chart-int" height="130"></canvas>
   </div>
   <div class="cpanel">
-    <div class="clabel"><span>Eau — 24h</span><span id="rng-water"></span></div>
-    <canvas id="chart-water" height="120"></canvas>
+    <div class="clabel"><span>Eau</span><span class="crng" id="rng-water"></span></div>
+    <canvas id="chart-water" height="130"></canvas>
+  </div>
+</div>
+
+<!-- Graphiques humidité -->
+<div class="hum-grid">
+  <div class="hpanel">
+    <div class="clabel"><span>Humidité ext.</span><span class="crng" id="rng-hext"></span></div>
+    <canvas id="chart-hext" height="90"></canvas>
+  </div>
+  <div class="hpanel">
+    <div class="clabel"><span>Humidité int.</span><span class="crng" id="rng-hint"></span></div>
+    <canvas id="chart-hint" height="90"></canvas>
+  </div>
+  <div class="hpanel">
+    <div class="clabel"><span style="color:#333">—</span></div>
+    <canvas id="chart-hwater" height="90" style="opacity:0"></canvas>
   </div>
 </div>
 
@@ -122,13 +176,32 @@ const APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
 const API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
 const MAC     = '84:1F:E8:35:E4:93';
 
+// ── Thèmes couleurs ────────────────────────────────────────
+const THEMES = {
+  defaut: ['rgb(0,200,255)',   'rgb(57,217,138)',  'rgb(123,97,255)'],
+  chaud:  ['rgb(255,107,53)',  'rgb(245,197,66)',  'rgb(255,51,102)'],
+  froid:  ['rgb(0,180,216)',   'rgb(144,224,239)', 'rgb(202,240,248)'],
+  mono:   ['rgb(200,200,200)', 'rgb(140,140,140)', 'rgb(80,80,80)'],
+  nature: ['rgb(45,106,79)',   'rgb(116,198,157)', 'rgb(183,228,199)'],
+};
+let theme = THEMES.defaut;
+
+// ── Périodes ───────────────────────────────────────────────
+const PERIODS = {
+  '1j': 1,
+  '1m': 30,
+  '3m': 90,
+  '1a': 365,
+};
+let currentPeriod = '1j';
+
 // ── Proxy auto ─────────────────────────────────────────────
 async function apiFetch(endpoint, params='') {
   const base = `https://api.ecowitt.net/api/v3/device/${endpoint}?application_key=${APP_KEY}&api_key=${API_KEY}&mac=${MAC}&temp_unitid=1${params}`;
   const urls = [base, `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
   for (const url of urls) {
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const r = await fetch(url, { signal:AbortSignal.timeout(12000) });
       const j = await r.json();
       if (j.code === 0) return j.data;
     } catch(e) {}
@@ -136,115 +209,229 @@ async function apiFetch(endpoint, params='') {
   throw new Error('Connexion échouée');
 }
 
-// ── Charts ─────────────────────────────────────────────────
-function makeChart(id, color) {
-  return new Chart(document.getElementById(id), {
-    type: 'line',
-    data: { labels:[], datasets:[{
+// ── Plugin crosshair vertical ──────────────────────────────
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDraw(chart) {
+    if (chart._crosshairX === undefined) return;
+    const ctx = chart.ctx;
+    const x   = chart._crosshairX;
+    const top  = chart.chartArea.top;
+    const bot  = chart.chartArea.bottom;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, bot);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4,4]);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+Chart.register(crosshairPlugin);
+
+// ── Création graphique ─────────────────────────────────────
+function makeChart(id, color, isHum=false) {
+  const canvas = document.getElementById(id);
+  const chart = new Chart(canvas, {
+    type:'line',
+    data:{ labels:[], datasets:[{
       data:[], borderColor:color,
-      backgroundColor: color.replace('rgb(','rgba(').replace(')',',0.06)'),
+      backgroundColor: color.replace('rgb(','rgba(').replace(')',',0.07)'),
       borderWidth:1.5, pointRadius:0, tension:0.3, fill:true
     }]},
-    options: {
+    options:{
       responsive:true, animation:false,
       interaction:{ mode:'index', intersect:false },
-      plugins:{ legend:{ display:false },
-        tooltip:{ backgroundColor:'#161616', borderColor:color, borderWidth:1,
-          callbacks:{ label: c => ` ${c.parsed.y.toFixed(1)} °C` }}},
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ enabled:false }, // on gère le tooltip manuellement
+        crosshair:{}
+      },
       scales:{
-        x:{ grid:{color:'#1a1a1a'}, ticks:{color:'#444', font:{size:9}, maxTicksLimit:8, maxRotation:0} },
-        y:{ grid:{color:'#1a1a1a'}, ticks:{color:'#444', font:{size:9}, callback:v=>`${v.toFixed(0)}°` } }
+        x:{ grid:{color:'#1a1a1a'}, ticks:{color:'#444',font:{size:9},maxTicksLimit:isHum?6:8,maxRotation:0} },
+        y:{
+          grid:{color:'#1a1a1a'},
+          ticks:{color:'#444',font:{size:9},
+            callback: v => isHum ? `${v.toFixed(0)}%` : `${v.toFixed(0)}°`
+          }
+        }
+      },
+      onHover(evt, _, ch) {
+        if (!evt.native) return;
+        const pts = ch.getElementsAtEventForMode(evt.native,'index',{intersect:false},true);
+        if (!pts.length) { ch._crosshairX = undefined; ch.draw(); showTooltip(ch, null); return; }
+        ch._crosshairX = pts[0].element.x;
+        ch.draw();
+        const idx = pts[0].index;
+        const val = ch.data.datasets[0].data[idx];
+        const lbl = ch.data.labels[idx];
+        showTooltip(ch, { val, lbl, color, isHum });
       }
     }
   });
+
+  // Tooltip flottant
+  const tip = document.createElement('div');
+  tip.className = 'chart-tooltip';
+  canvas.parentElement.style.position = 'relative';
+  canvas.parentElement.appendChild(tip);
+  chart._tooltip_el = tip;
+
+  canvas.addEventListener('mouseleave', () => {
+    chart._crosshairX = undefined;
+    chart.draw();
+    tip.style.display = 'none';
+  });
+
+  return chart;
 }
 
-const charts = {
-  ext:   makeChart('chart-ext',   'rgb(0,200,255)'),
-  int:   makeChart('chart-int',   'rgb(57,217,138)'),
-  water: makeChart('chart-water', 'rgb(123,97,255)')
-};
-
-function loadChart(key, data, rangeId) {
-  if (!data.length) return;
-  const fmt = ts => { const d=new Date(ts*1000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-  charts[key].data.labels = data.map(p => fmt(p.t));
-  charts[key].data.datasets[0].data = data.map(p => p.v);
-  charts[key].update();
-  const vals = data.map(p=>p.v);
-  const mn = Math.min(...vals), mx = Math.max(...vals);
-  document.getElementById(rangeId).textContent = `↓${mn.toFixed(1)}° ↑${mx.toFixed(1)}°`;
-  return { mn, mx };
+function showTooltip(chart, info) {
+  const tip = chart._tooltip_el;
+  if (!tip) return;
+  if (!info) { tip.style.display='none'; return; }
+  const suffix = info.isHum ? '%' : '°C';
+  tip.style.display = 'block';
+  tip.style.borderColor = info.color;
+  tip.innerHTML = `<span style="color:${info.color}">${parseFloat(info.val).toFixed(1)} ${suffix}</span> <span style="color:#555">${info.lbl}</span>`;
+  tip.style.top = '14px';
+  tip.style.right = '12px';
 }
 
-// ── Historique 24h ─────────────────────────────────────────
+// ── Init charts ────────────────────────────────────────────
+let CH = {};
+function initCharts() {
+  CH.ext    = makeChart('chart-ext',    theme[0]);
+  CH.int    = makeChart('chart-int',    theme[1]);
+  CH.water  = makeChart('chart-water',  theme[2]);
+  CH.hext   = makeChart('chart-hext',   theme[0], true);
+  CH.hint   = makeChart('chart-hint',   theme[1], true);
+}
+
+// ── Charger graphique ──────────────────────────────────────
+function loadChart(key, data, rangeId, isHum=false) {
+  if (!data.length) return null;
+  const fmt = ts => {
+    const d = new Date(ts*1000);
+    if (currentPeriod === '1j') return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}h`;
+  };
+  CH[key].data.labels = data.map(p=>fmt(p.t));
+  CH[key].data.datasets[0].data = data.map(p=>p.v);
+  CH[key].update();
+  const vals=data.map(p=>p.v), mn=Math.min(...vals), mx=Math.max(...vals);
+  const suffix = isHum ? '%' : '°';
+  document.getElementById(rangeId).textContent = `↓${mn.toFixed(1)}${suffix} ↑${mx.toFixed(1)}${suffix}`;
+  return {mn,mx};
+}
+
+// ── Historique ─────────────────────────────────────────────
 async function loadHistory() {
+  const days  = PERIODS[currentPeriod];
   const now   = Math.floor(Date.now()/1000);
-  const start = now - 24*3600;
+  const start = now - days*24*3600;
   const pad   = x => String(x).padStart(2,'0');
   const fmt   = ts => { const d=new Date(ts*1000); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`; };
 
   const data = await apiFetch('history',
     `&start_date=${encodeURIComponent(fmt(start))}` +
     `&end_date=${encodeURIComponent(fmt(now))}` +
-    `&call_back=indoor.temperature,temp_and_humidity_ch1.temperature,temp_and_humidity_ch2.temperature`
+    `&call_back=indoor.temperature,indoor.humidity,temp_and_humidity_ch1.temperature,temp_and_humidity_ch1.humidity,temp_and_humidity_ch2.temperature`
   );
 
-  const parse = (obj, ...keys) => {
-    let c = obj;
-    for (const k of keys) c = c?.[k];
-    if (!c?.list) return [];
-    return Object.entries(c.list)
-      .map(([ts,v]) => ({ t:parseInt(ts), v:parseFloat(v) }))
-      .filter(p => !isNaN(p.v))
-      .sort((a,b) => a.t - b.t);
+  const parse = (obj,...keys) => {
+    let c=obj; for(const k of keys) c=c?.[k];
+    if(!c?.list) return [];
+    return Object.entries(c.list).map(([ts,v])=>({t:parseInt(ts),v:parseFloat(v)})).filter(p=>!isNaN(p.v)).sort((a,b)=>a.t-b.t);
   };
 
-  const extD   = parse(data, 'temp_and_humidity_ch1', 'temperature');
-  const intD   = parse(data, 'indoor',                'temperature');
-  const waterD = parse(data, 'temp_and_humidity_ch2', 'temperature');
+  const extD   = parse(data,'temp_and_humidity_ch1','temperature');
+  const intD   = parse(data,'indoor','temperature');
+  const watD   = parse(data,'temp_and_humidity_ch2','temperature');
+  const hextD  = parse(data,'temp_and_humidity_ch1','humidity');
+  const hintD  = parse(data,'indoor','humidity');
 
-  const re = loadChart('ext',   extD,   'rng-ext');
-  const ri = loadChart('int',   intD,   'rng-int');
-  const rw = loadChart('water', waterD, 'rng-water');
+  const re = loadChart('ext',   extD,  'rng-ext');
+  const ri = loadChart('int',   intD,  'rng-int');
+  const rw = loadChart('water', watD,  'rng-water');
+       loadChart('hext',  hextD, 'rng-hext', true);
+       loadChart('hint',  hintD, 'rng-hint', true);
 
-  if (re) { document.getElementById('min-ext').textContent=`↓${re.mn.toFixed(1)}°`; document.getElementById('max-ext').textContent=`↑${re.mx.toFixed(1)}°`; }
-  if (ri) { document.getElementById('min-int').textContent=`↓${ri.mn.toFixed(1)}°`; document.getElementById('max-int').textContent=`↑${ri.mx.toFixed(1)}°`; }
-  if (rw) { document.getElementById('min-water').textContent=`↓${rw.mn.toFixed(1)}°`; document.getElementById('max-water').textContent=`↑${rw.mx.toFixed(1)}°`; }
+  if(re){ document.getElementById('min-ext').textContent=`↓${re.mn.toFixed(1)}°`; document.getElementById('max-ext').textContent=`↑${re.mx.toFixed(1)}°`; }
+  if(ri){ document.getElementById('min-int').textContent=`↓${ri.mn.toFixed(1)}°`; document.getElementById('max-int').textContent=`↑${ri.mx.toFixed(1)}°`; }
+  if(rw){ document.getElementById('min-water').textContent=`↓${rw.mn.toFixed(1)}°`; document.getElementById('max-water').textContent=`↑${rw.mx.toFixed(1)}°`; }
 }
 
 // ── Temps réel ─────────────────────────────────────────────
 async function loadLive() {
-  const data = await apiFetch('real_time', '&call_back=all');
-  const ch1 = data?.temp_and_humidity_ch1 || {};
-  const inn = data?.indoor                || {};
-  const ch2 = data?.temp_and_humidity_ch2 || {};
+  const data = await apiFetch('real_time','&call_back=all');
+  const ch1=data?.temp_and_humidity_ch1||{}, inn=data?.indoor||{}, ch2=data?.temp_and_humidity_ch2||{};
+  const v=(o,k)=>o[k]?.value??null;
 
-  const v = (obj,k) => obj[k]?.value ?? '--';
+  const te=v(ch1,'temperature'), ti=v(inn,'temperature'), tw=v(ch2,'temperature');
+  const he=v(ch1,'humidity'),    hi=v(inn,'humidity');
 
-  document.getElementById('val-ext').innerHTML   = `${parseFloat(v(ch1,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
-  document.getElementById('val-int').innerHTML   = `${parseFloat(v(inn,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
-  document.getElementById('val-water').innerHTML = `${parseFloat(v(ch2,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
+  if(te) document.getElementById('val-ext').innerHTML   = `${parseFloat(te).toFixed(1)}<span class="unit">°C</span>`;
+  if(ti) document.getElementById('val-int').innerHTML   = `${parseFloat(ti).toFixed(1)}<span class="unit">°C</span>`;
+  if(tw) document.getElementById('val-water').innerHTML = `${parseFloat(tw).toFixed(1)}<span class="unit">°C</span>`;
+  if(he) document.getElementById('hum-ext').textContent = `💧${he}%`;
+  if(hi) document.getElementById('hum-int').textContent = `💧${hi}%`;
 
-  const he = v(ch1,'humidity'), hi = v(inn,'humidity');
-  if (he!=='--') document.getElementById('hum-ext').textContent = `💧${he}%`;
-  if (hi!=='--') document.getElementById('hum-int').textContent = `💧${hi}%`;
-
-  const t = new Date();
-  document.getElementById('status').textContent =
-    `✅ ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
+  const t=new Date();
+  document.getElementById('status').textContent=`✅ ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
 }
+
+// ── Changer couleurs ───────────────────────────────────────
+function applyTheme(name) {
+  theme = THEMES[name];
+  const keys = ['ext','int','water','hext','hint'];
+  const colors = [theme[0],theme[1],theme[2],theme[0],theme[1]];
+  keys.forEach((k,i) => {
+    if(!CH[k]) return;
+    CH[k].data.datasets[0].borderColor = colors[i];
+    CH[k].data.datasets[0].backgroundColor = colors[i].replace('rgb(','rgba(').replace(')',',0.07)');
+    CH[k].update();
+  });
+  // Mettre à jour les cartes
+  ['ext','int','water'].forEach((k,i) => {
+    document.getElementById(`card-${k}`).style.setProperty('--c', theme[i]);
+  });
+}
+
+// ── Boutons période ────────────────────────────────────────
+document.querySelectorAll('.pbtn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPeriod = btn.dataset.p;
+    document.getElementById('status').textContent='Chargement…';
+    try { await loadHistory(); document.getElementById('status').textContent=`✅ ${currentPeriod} chargé`; }
+    catch(e){ document.getElementById('status').textContent='❌ '+e.message; }
+  });
+});
+
+// ── Boutons couleurs ───────────────────────────────────────
+document.querySelectorAll('.cbtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    applyTheme(btn.dataset.theme);
+  });
+});
 
 // ── Démarrage ──────────────────────────────────────────────
 async function init() {
   try {
-    document.getElementById('status').textContent = 'Chargement historique…';
+    initCharts();
+    document.getElementById('status').textContent='Chargement historique…';
     await loadHistory();
     await loadLive();
     setInterval(loadLive, 60000);
-    setInterval(loadHistory, 5 * 60 * 1000); // refresh historique toutes les 5 min
+    setInterval(loadHistory, 5*60*1000);
   } catch(e) {
-    document.getElementById('status').textContent = '❌ ' + e.message;
+    document.getElementById('status').textContent='❌ '+e.message;
   }
 }
 
