@@ -2,22 +2,16 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Chalet Savard — Dashboard Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chalet Savard — Dashboard</title>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
 :root{
-  --bg:#091018;
+  --bg:#0a1119;
   --panel:rgba(17,22,29,0.72);
   --border:rgba(255,255,255,0.06);
   --text:#eaf2ff;
@@ -25,79 +19,34 @@
   --blue:#00c8ff;
   --green:#39d98a;
   --purple:#7b61ff;
-  --orange:#ff8c42;
-  --yellow:#ffd166;
-  --danger:#ff5c7a;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
 body{
-  font-family:'Inter',sans-serif;
+  font-family:Inter,sans-serif;
+  background: radial-gradient(circle at top left, rgba(0,200,255,0.12), transparent 25%),
+              radial-gradient(circle at bottom right, rgba(123,97,255,0.12), transparent 25%),
+              var(--bg);
   color:var(--text);
-  min-height:100vh;
-  background:
-    radial-gradient(circle at top left, rgba(0,200,255,0.12), transparent 22%),
-    radial-gradient(circle at bottom right, rgba(123,97,255,0.12), transparent 22%),
-    linear-gradient(180deg,#071018 0%,#0a1119 100%);
-  overflow-x:hidden;
 }
 
-body::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size:40px 40px;
-  pointer-events:none;
-  opacity:.35;
-}
-
-.container{
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-
-.topbar{
+/* HEADER */
+.header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:22px 28px;
-  background:var(--panel);
-  backdrop-filter:blur(18px);
-  border:1px solid var(--border);
-  border-radius:24px;
-  box-shadow:0 8px 40px rgba(0,0,0,.35);
+  padding:20px;
 }
 
-.brand h1{
-  font-size:1.7rem;
-  font-weight:700;
-  margin-bottom:6px;
-}
-
-.brand p{
-  color:var(--muted);
-  font-size:.95rem;
-}
-
-.live-wrap{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.live-badge{
+.live{
   display:flex;
   align-items:center;
   gap:10px;
-  padding:10px 16px;
-  border-radius:999px;
-  background:rgba(57,217,138,0.1);
-  border:1px solid rgba(57,217,138,0.2);
-  font-size:.82rem;
   color:var(--green);
   font-weight:600;
 }
@@ -107,649 +56,175 @@ body::before{
   height:10px;
   border-radius:50%;
   background:var(--green);
-  box-shadow:0 0 12px var(--green);
   animation:pulse 2s infinite;
 }
 
 @keyframes pulse{
   0%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.5);opacity:.5;}
+  50%{transform:scale(1.4);opacity:.4;}
   100%{transform:scale(1);opacity:1;}
 }
 
-.controls{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  gap:14px;
-  align-items:center;
-}
-
-.group{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  border:none;
-  background:rgba(255,255,255,0.04);
-  color:var(--muted);
-  border:1px solid var(--border);
-  padding:10px 18px;
-  border-radius:14px;
-  cursor:pointer;
-  transition:.25s ease;
-  font-weight:600;
-}
-
-.btn:hover,
-.btn.active{
-  transform:translateY(-2px);
-  color:white;
-  border-color:rgba(255,255,255,0.2);
-  box-shadow:0 8px 30px rgba(0,0,0,.3);
-}
-
+/* CARDS */
 .cards{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:16px;
+  gap:14px;
+  padding:0 20px;
 }
 
 .card{
-  position:relative;
-  overflow:hidden;
   background:var(--panel);
   border:1px solid var(--border);
-  backdrop-filter:blur(16px);
-  border-radius:28px;
-  padding:24px;
-  transition:.25s ease;
-  box-shadow:0 10px 35px rgba(0,0,0,.25);
-}
-
-.card:hover{
-  transform:translateY(-3px);
-}
-
-.card::before{
-  content:'';
-  position:absolute;
-  top:-50px;
-  right:-50px;
-  width:150px;
-  height:150px;
-  border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
-}
-
-.label{
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.15em;
-  font-size:.75rem;
-  margin-bottom:18px;
+  border-radius:20px;
+  padding:18px;
 }
 
 .value{
-  font-size:4rem;
+  font-size:3rem;
   font-weight:700;
-  line-height:1;
 }
 
-.unit{
-  font-size:1.4rem;
-  opacity:.6;
-}
-
-.meta{
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-  margin-top:16px;
-  color:var(--muted);
-  font-size:.85rem;
-}
-
-.alerts{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-.alert{
-  padding:12px 16px;
-  border-radius:16px;
-  font-size:.88rem;
-  font-weight:600;
-  border:1px solid transparent;
-  backdrop-filter:blur(12px);
-}
-
-.alert.info{
-  background:rgba(0,200,255,0.08);
-  border-color:rgba(0,200,255,0.15);
-  color:var(--blue);
-}
-
-.alert.warn{
-  background:rgba(255,140,66,0.08);
-  border-color:rgba(255,140,66,0.15);
-  color:var(--orange);
-}
-
-.alert.danger{
-  background:rgba(255,92,122,0.08);
-  border-color:rgba(255,92,122,0.15);
-  color:var(--danger);
-}
-
-.grid-2,
-.grid-3{
+/* GRID */
+.grid{
   display:grid;
-  gap:16px;
-}
-
-.grid-2{
-  grid-template-columns:repeat(2,1fr);
-}
-
-.grid-3{
   grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  padding:20px;
 }
 
+/* IMPORTANT FIX ICI */
 .panel{
   background:var(--panel);
   border:1px solid var(--border);
-  border-radius:28px;
-  padding:22px;
-  backdrop-filter:blur(16px);
-  box-shadow:0 10px 35px rgba(0,0,0,.25);
-  transition:.25s ease;
-}
-
-.panel:hover{
-  transform:translateY(-2px);
-}
-
-.panel-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:18px;
-}
-
-.panel-title{
-  font-size:.9rem;
-  color:#cdd8ea;
-  font-weight:600;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
-
-.panel-sub{
-  color:var(--muted);
-  font-size:.8rem;
-}
-
-.table-wrap{
-  overflow:auto;
-  max-height:420px;
-}
-
-.table-wrap::-webkit-scrollbar{
-  height:8px;
-  width:8px;
-}
-
-.table-wrap::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.1);
-  border-radius:999px;
-}
-
-.table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.table thead{
-  position:sticky;
-  top:0;
-  background:#111823;
-}
-
-.table th{
-  text-align:left;
-  padding:14px;
-  font-size:.72rem;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  color:var(--muted);
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-
-.table td{
-  padding:14px;
-  border-bottom:1px solid rgba(255,255,255,.03);
-  color:#d7e0ef;
-  font-size:.86rem;
-}
-
-.table tr:hover td{
-  background:rgba(255,255,255,.02);
-}
-
-.footer{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  color:var(--muted);
-  font-size:.8rem;
-  padding:8px 4px;
-}
-
-.status{
-  color:var(--green);
-  font-weight:600;
-}
-
-.forecast{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:12px;
-}
-
-.forecast-card{
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.04);
   border-radius:20px;
   padding:16px;
-  text-align:center;
+  height:320px;              /* 🔥 FIX HAUTEUR STABLE */
+  display:flex;
+  flex-direction:column;
 }
 
-.forecast-card h4{
-  color:var(--muted);
-  font-size:.8rem;
-  margin-bottom:10px;
+canvas{
+  flex:1;                    /* 🔥 empêche débordement */
+  width:100% !important;
+  height:100% !important;
 }
 
-.forecast-icon{
-  font-size:1.7rem;
-  margin-bottom:10px;
-}
-
-.forecast-temp{
-  font-size:1.3rem;
-  font-weight:700;
-}
-
-@media(max-width:1100px){
-  .cards,
-  .grid-2,
-  .grid-3,
-  .forecast{
+/* responsive */
+@media(max-width:900px){
+  .cards,.grid{
     grid-template-columns:1fr;
-  }
-
-  .topbar{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:18px;
-  }
-
-  .value{
-    font-size:3rem;
   }
 }
 </style>
 </head>
+
 <body>
 
-<div class="container">
-
-  <header class="topbar">
-    <div class="brand">
-      <h1>🏡 Chalet Savard</h1>
-      <p>Dashboard météo intelligent · Ecowitt GW3000B · Saint-Félicien</p>
-    </div>
-
-    <div class="live-wrap">
-      <div class="live-badge">
-        <div class="dot"></div>
-        EN DIRECT
-      </div>
-
-      <button class="btn" onclick="toggleFullscreen()">⛶ Plein écran</button>
-    </div>
-  </header>
-
-  <div class="controls">
-    <div class="group">
-      <button class="btn active">1 Jour</button>
-      <button class="btn">1 Mois</button>
-      <button class="btn">3 Mois</button>
-      <button class="btn">1 Année</button>
-    </div>
-
-    <div class="group">
-      <button class="btn">Bleu</button>
-      <button class="btn">Nature</button>
-      <button class="btn">Mono</button>
-      <button class="btn">Chaud</button>
-    </div>
+<div class="header">
+  <div>
+    <h2>🏡 Chalet Savard</h2>
+    <small>Dashboard météo intelligent</small>
   </div>
 
-  <div class="alerts" id="alerts">
-    <div class="alert info">💧 Humidité extérieure élevée</div>
-    <div class="alert warn">⚠️ Écart météo officiel de 2.8°C</div>
-    <div class="alert danger">❄️ Risque de gel détecté</div>
+  <div class="live">
+    <div class="dot"></div>
+    EN DIRECT
+  </div>
+</div>
+
+<!-- CARDS -->
+<div class="cards">
+  <div class="card">
+    <div>Extérieur</div>
+    <div class="value" style="color:var(--blue)">18.4°</div>
   </div>
 
-  <section class="cards">
+  <div class="card">
+    <div>Intérieur</div>
+    <div class="value" style="color:var(--green)">21.7°</div>
+  </div>
 
-    <div class="card">
-      <div class="label">Température extérieure</div>
-      <div class="value" style="color:var(--blue)">
-        18.4<span class="unit">°C</span>
-      </div>
+  <div class="card">
+    <div>Eau</div>
+    <div class="value" style="color:var(--purple)">5.8°</div>
+  </div>
+</div>
 
-      <div class="meta">
-        <span>💧 81%</span>
-        <span>↓ 12.1°</span>
-        <span>↑ 20.8°</span>
-        <span>↗ +0.8° / h</span>
-      </div>
-    </div>
+<!-- GRAPHIQUES -->
+<div class="grid">
 
-    <div class="card">
-      <div class="label">Température intérieure</div>
-      <div class="value" style="color:var(--green)">
-        21.7<span class="unit">°C</span>
-      </div>
+  <div class="panel">
+    <h4>Température extérieure</h4>
+    <canvas id="c1"></canvas>
+  </div>
 
-      <div class="meta">
-        <span>💧 49%</span>
-        <span>↓ 19.6°</span>
-        <span>↑ 23.2°</span>
-        <span>→ Stable</span>
-      </div>
-    </div>
+  <div class="panel">
+    <h4>Température intérieure</h4>
+    <canvas id="c2"></canvas>
+  </div>
 
-    <div class="card">
-      <div class="label">Température eau</div>
-      <div class="value" style="color:var(--purple)">
-        5.8<span class="unit">°C</span>
-      </div>
-
-      <div class="meta">
-        <span>↓ 4.1°</span>
-        <span>↑ 7.2°</span>
-        <span>↘ -0.2° / h</span>
-      </div>
-    </div>
-
-  </section>
-
-  <section class="grid-3">
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Température extérieure</div>
-        <div class="panel-sub">24 dernières heures</div>
-      </div>
-      <canvas id="chart1" height="130"></canvas>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Température intérieure</div>
-        <div class="panel-sub">24 dernières heures</div>
-      </div>
-      <canvas id="chart2" height="130"></canvas>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Température eau</div>
-        <div class="panel-sub">24 dernières heures</div>
-      </div>
-      <canvas id="chart3" height="130"></canvas>
-    </div>
-
-  </section>
-
-  <section class="grid-2">
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Comparaison météo officielle</div>
-        <div class="panel-sub">Station vs Open-Meteo</div>
-      </div>
-      <canvas id="chart4" height="140"></canvas>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Humidité</div>
-        <div class="panel-sub">Intérieur vs extérieur</div>
-      </div>
-      <canvas id="chart5" height="140"></canvas>
-    </div>
-
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <div class="panel-title">Prévisions météo — prochaines heures</div>
-      <div class="panel-sub">Open-Meteo</div>
-    </div>
-
-    <div class="forecast">
-      <div class="forecast-card">
-        <h4>18h</h4>
-        <div class="forecast-icon">☀️</div>
-        <div class="forecast-temp">19°</div>
-      </div>
-
-      <div class="forecast-card">
-        <h4>21h</h4>
-        <div class="forecast-icon">🌤️</div>
-        <div class="forecast-temp">16°</div>
-      </div>
-
-      <div class="forecast-card">
-        <h4>00h</h4>
-        <div class="forecast-icon">🌙</div>
-        <div class="forecast-temp">11°</div>
-      </div>
-
-      <div class="forecast-card">
-        <h4>03h</h4>
-        <div class="forecast-icon">🌧️</div>
-        <div class="forecast-temp">9°</div>
-      </div>
-
-      <div class="forecast-card">
-        <h4>06h</h4>
-        <div class="forecast-icon">⛅</div>
-        <div class="forecast-temp">13°</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <div class="panel-title">Historique 24h</div>
-      <div class="panel-sub">Échantillon aux 30 minutes</div>
-    </div>
-
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Heure</th>
-            <th>Ext.</th>
-            <th>Int.</th>
-            <th>Eau</th>
-            <th>Hum. ext.</th>
-            <th>Hum. int.</th>
-            <th>Officiel</th>
-            <th>Écart</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr>
-            <td>16:00</td>
-            <td>18.4°</td>
-            <td>21.7°</td>
-            <td>5.8°</td>
-            <td>81%</td>
-            <td>49%</td>
-            <td>17.2°</td>
-            <td style="color:var(--green)">+1.2°</td>
-          </tr>
-
-          <tr>
-            <td>15:30</td>
-            <td>17.9°</td>
-            <td>21.5°</td>
-            <td>5.9°</td>
-            <td>79%</td>
-            <td>48%</td>
-            <td>17.0°</td>
-            <td style="color:var(--green)">+0.9°</td>
-          </tr>
-
-          <tr>
-            <td>15:00</td>
-            <td>17.1°</td>
-            <td>21.2°</td>
-            <td>6.0°</td>
-            <td>77%</td>
-            <td>48%</td>
-            <td>16.8°</td>
-            <td style="color:var(--green)">+0.3°</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <div class="footer">
-    <div>GW3000B · Ecowitt · Open-Meteo · Saint-Félicien</div>
-    <div class="status">● Synchronisé à 16:42:11</div>
+  <div class="panel">
+    <h4>Température eau</h4>
+    <canvas id="c3"></canvas>
   </div>
 
 </div>
 
 <script>
-function createGradient(ctx,color){
-  const gradient = ctx.createLinearGradient(0,0,0,260);
-  gradient.addColorStop(0,color.replace('rgb','rgba').replace(')',',0.35)'));
-  gradient.addColorStop(1,color.replace('rgb','rgba').replace(')',',0)'));
-  return gradient;
+
+/* GRADIENT */
+function gradient(ctx,color){
+  const g = ctx.createLinearGradient(0,0,0,300);
+  g.addColorStop(0,color.replace('rgb','rgba').replace(')',',0.35)'));
+  g.addColorStop(1,color.replace('rgb','rgba').replace(')',',0'));
+  return g;
 }
 
-function generateData(base,variance,length){
-  return Array.from({length},()=>base + (Math.random()*variance - variance/2));
+/* DATA MOCK */
+function data(base){
+  return Array.from({length:12},()=>base + (Math.random()*4-2));
 }
 
 function labels(){
   return ['00h','02h','04h','06h','08h','10h','12h','14h','16h','18h','20h','22h'];
 }
 
-function makeChart(id,color,data1,data2=null){
-  const canvas = document.getElementById(id);
-  const ctx = canvas.getContext('2d');
-
-  const datasets = [
-    {
-      label:'Station',
-      data:data1,
-      borderColor:color,
-      backgroundColor:createGradient(ctx,color),
-      fill:true,
-      tension:.35,
-      pointRadius:0,
-      borderWidth:2
-    }
-  ];
-
-  if(data2){
-    datasets.push({
-      label:'Officiel',
-      data:data2,
-      borderColor:'rgb(255,209,102)',
-      borderDash:[6,6],
-      pointRadius:0,
-      tension:.35,
-      borderWidth:2
-    });
-  }
+/* CHART */
+function make(id,color,val){
+  const ctx = document.getElementById(id).getContext('2d');
 
   return new Chart(ctx,{
     type:'line',
     data:{
       labels:labels(),
-      datasets
+      datasets:[{
+        data:val,
+        borderColor:color,
+        backgroundColor:gradient(ctx,color),
+        fill:true,
+        tension:0.35,
+        pointRadius:0,
+        borderWidth:2
+      }]
     },
     options:{
       responsive:true,
-      maintainAspectRatio:false,
-      interaction:{
-        mode:'index',
-        intersect:false
-      },
-      plugins:{
-        legend:{
-          labels:{
-            color:'#b7c2d8'
-          }
-        }
-      },
+      maintainAspectRatio:false,   // 🔥 CRUCIAL
+      plugins:{legend:{display:false}},
       scales:{
-        x:{
-          grid:{
-            color:'rgba(255,255,255,.03)'
-          },
-          ticks:{
-            color:'#7c8ca3'
-          }
-        },
-        y:{
-          grid:{
-            color:'rgba(255,255,255,.03)'
-          },
-          ticks:{
-            color:'#7c8ca3'
-          }
-        }
+        x:{ticks:{color:'#7c8ca3'},grid:{color:'rgba(255,255,255,0.03)'}},
+        y:{ticks:{color:'#7c8ca3'},grid:{color:'rgba(255,255,255,0.03)'}}
       }
     }
   });
 }
 
-makeChart('chart1','rgb(0,200,255)',generateData(15,8,12));
-makeChart('chart2','rgb(57,217,138)',generateData(21,2,12));
-makeChart('chart3','rgb(123,97,255)',generateData(6,2,12));
-makeChart('chart4','rgb(0,200,255)',generateData(15,6,12),generateData(14,5,12));
-makeChart('chart5','rgb(57,217,138)',generateData(50,20,12),generateData(72,12,12));
+/* INIT */
+make('c1','rgb(0,200,255)',data(15));
+make('c2','rgb(57,217,138)',data(21));
+make('c3','rgb(123,97,255)',data(6));
 
-function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen();
-  }else{
-    document.exitFullscreen();
-  }
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key.toLowerCase()==='f'){
-    toggleFullscreen();
-  }
-});
 </script>
 
 </body>
