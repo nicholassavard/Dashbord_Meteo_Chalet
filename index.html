@@ -4,60 +4,251 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chalet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  body { background:#111; color:#fff; font-family:monospace; padding:40px; font-size:1.2rem; }
-  .val { font-size:3rem; color:#00c8ff; margin:8px 0 24px; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#111; color:#fff; font-family:monospace; }
+
+  .cards {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:#222;
+    border-bottom:1px solid #222;
+  }
+
+  .card {
+    background:#161616;
+    padding:24px;
+    border-top:2px solid var(--c);
+  }
+
+  .label { font-size:0.7rem; color:#555; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:8px; }
+  .val   { font-size:3.2rem; color:var(--c); line-height:1; }
+  .unit  { font-size:1rem; color:#444; }
+  .sub   { margin-top:10px; font-size:0.8rem; color:#555; }
+  .sub span { color:#888; margin-right:12px; }
+
+  .charts {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:#222;
+  }
+
+  .cpanel {
+    background:#111;
+    padding:16px 20px;
+  }
+
+  .clabel {
+    font-size:0.65rem;
+    color:#444;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  footer {
+    padding:10px 20px;
+    font-size:0.7rem;
+    color:#333;
+    border-top:1px solid #1a1a1a;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  @media(max-width:600px){
+    .cards,.charts{ grid-template-columns:1fr; }
+    .val{ font-size:2.5rem; }
+  }
 </style>
 </head>
 <body>
-  <p>Extérieure (CH1)</p>
-  <div class="val" id="ext">--</div>
 
-  <p>Intérieure</p>
-  <div class="val" id="int" style="color:#39d98a">--</div>
+<div class="cards">
+  <div class="card" style="--c:#00c8ff">
+    <div class="label">Extérieure (CH1)</div>
+    <div class="val" id="val-ext">--<span class="unit">°C</span></div>
+    <div class="sub">
+      <span id="hum-ext"></span>
+      <span id="min-ext"></span>
+      <span id="max-ext"></span>
+    </div>
+  </div>
+  <div class="card" style="--c:#39d98a">
+    <div class="label">Intérieure</div>
+    <div class="val" id="val-int">--<span class="unit">°C</span></div>
+    <div class="sub">
+      <span id="hum-int"></span>
+      <span id="min-int"></span>
+      <span id="max-int"></span>
+    </div>
+  </div>
+  <div class="card" style="--c:#7b61ff">
+    <div class="label">Eau (CH2)</div>
+    <div class="val" id="val-water">--<span class="unit">°C</span></div>
+    <div class="sub">
+      <span id="min-water"></span>
+      <span id="max-water"></span>
+    </div>
+  </div>
+</div>
 
-  <p>Eau (CH2)</p>
-  <div class="val" id="water" style="color:#7b61ff">--</div>
+<div class="charts">
+  <div class="cpanel">
+    <div class="clabel"><span>Extérieure — 24h</span><span id="rng-ext"></span></div>
+    <canvas id="chart-ext" height="120"></canvas>
+  </div>
+  <div class="cpanel">
+    <div class="clabel"><span>Intérieure — 24h</span><span id="rng-int"></span></div>
+    <canvas id="chart-int" height="120"></canvas>
+  </div>
+  <div class="cpanel">
+    <div class="clabel"><span>Eau — 24h</span><span id="rng-water"></span></div>
+    <canvas id="chart-water" height="120"></canvas>
+  </div>
+</div>
 
-  <p id="status" style="font-size:0.8rem;color:#555">Chargement…</p>
+<footer>
+  <span>GW3000B · Ecowitt Cloud</span>
+  <span id="status">Chargement…</span>
+</footer>
 
 <script>
 const APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
 const API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
 const MAC     = '84:1F:E8:35:E4:93';
 
-async function fetch_data() {
-  const api = `https://api.ecowitt.net/api/v3/device/real_time?application_key=${APP_KEY}&api_key=${API_KEY}&mac=${MAC}&call_back=all&temp_unitid=1`;
-
-  // Essai direct, puis allorigins
-  const urls = [
-    api,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(api)}`
-  ];
-
+// ── Proxy auto ─────────────────────────────────────────────
+async function apiFetch(endpoint, params='') {
+  const base = `https://api.ecowitt.net/api/v3/device/${endpoint}?application_key=${APP_KEY}&api_key=${API_KEY}&mac=${MAC}&temp_unitid=1${params}`;
+  const urls = [base, `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
   for (const url of urls) {
     try {
-      const res  = await fetch(url);
-      const json = await res.json();
-      if (json.code !== 0) continue;
-
-      const d = json.data;
-      const ext   = d?.temp_and_humidity_ch1?.temperature?.value;
-      const int_  = d?.indoor?.temperature?.value;
-      const water = d?.temp_and_humidity_ch2?.temperature?.value;
-
-      document.getElementById('ext').textContent   = ext   ? ext   + ' °C' : '--';
-      document.getElementById('int').textContent   = int_  ? int_  + ' °C' : '--';
-      document.getElementById('water').textContent = water ? water + ' °C' : '--';
-      document.getElementById('status').textContent = '✅ ' + new Date().toLocaleTimeString('fr-CA');
-      return;
-    } catch(e) { continue; }
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      const j = await r.json();
+      if (j.code === 0) return j.data;
+    } catch(e) {}
   }
-  document.getElementById('status').textContent = '❌ Erreur connexion';
+  throw new Error('Connexion échouée');
 }
 
-fetch_data();
-setInterval(fetch_data, 60000);
+// ── Charts ─────────────────────────────────────────────────
+function makeChart(id, color) {
+  return new Chart(document.getElementById(id), {
+    type: 'line',
+    data: { labels:[], datasets:[{
+      data:[], borderColor:color,
+      backgroundColor: color.replace('rgb(','rgba(').replace(')',',0.06)'),
+      borderWidth:1.5, pointRadius:0, tension:0.3, fill:true
+    }]},
+    options: {
+      responsive:true, animation:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ display:false },
+        tooltip:{ backgroundColor:'#161616', borderColor:color, borderWidth:1,
+          callbacks:{ label: c => ` ${c.parsed.y.toFixed(1)} °C` }}},
+      scales:{
+        x:{ grid:{color:'#1a1a1a'}, ticks:{color:'#444', font:{size:9}, maxTicksLimit:8, maxRotation:0} },
+        y:{ grid:{color:'#1a1a1a'}, ticks:{color:'#444', font:{size:9}, callback:v=>`${v.toFixed(0)}°` } }
+      }
+    }
+  });
+}
+
+const charts = {
+  ext:   makeChart('chart-ext',   'rgb(0,200,255)'),
+  int:   makeChart('chart-int',   'rgb(57,217,138)'),
+  water: makeChart('chart-water', 'rgb(123,97,255)')
+};
+
+function loadChart(key, data, rangeId) {
+  if (!data.length) return;
+  const fmt = ts => { const d=new Date(ts*1000); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+  charts[key].data.labels = data.map(p => fmt(p.t));
+  charts[key].data.datasets[0].data = data.map(p => p.v);
+  charts[key].update();
+  const vals = data.map(p=>p.v);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  document.getElementById(rangeId).textContent = `↓${mn.toFixed(1)}° ↑${mx.toFixed(1)}°`;
+  return { mn, mx };
+}
+
+// ── Historique 24h ─────────────────────────────────────────
+async function loadHistory() {
+  const now   = Math.floor(Date.now()/1000);
+  const start = now - 24*3600;
+  const pad   = x => String(x).padStart(2,'0');
+  const fmt   = ts => { const d=new Date(ts*1000); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`; };
+
+  const data = await apiFetch('history',
+    `&start_date=${encodeURIComponent(fmt(start))}` +
+    `&end_date=${encodeURIComponent(fmt(now))}` +
+    `&call_back=indoor.temperature,temp_and_humidity_ch1.temperature,temp_and_humidity_ch2.temperature`
+  );
+
+  const parse = (obj, ...keys) => {
+    let c = obj;
+    for (const k of keys) c = c?.[k];
+    if (!c?.list) return [];
+    return Object.entries(c.list)
+      .map(([ts,v]) => ({ t:parseInt(ts), v:parseFloat(v) }))
+      .filter(p => !isNaN(p.v))
+      .sort((a,b) => a.t - b.t);
+  };
+
+  const extD   = parse(data, 'temp_and_humidity_ch1', 'temperature');
+  const intD   = parse(data, 'indoor',                'temperature');
+  const waterD = parse(data, 'temp_and_humidity_ch2', 'temperature');
+
+  const re = loadChart('ext',   extD,   'rng-ext');
+  const ri = loadChart('int',   intD,   'rng-int');
+  const rw = loadChart('water', waterD, 'rng-water');
+
+  if (re) { document.getElementById('min-ext').textContent=`↓${re.mn.toFixed(1)}°`; document.getElementById('max-ext').textContent=`↑${re.mx.toFixed(1)}°`; }
+  if (ri) { document.getElementById('min-int').textContent=`↓${ri.mn.toFixed(1)}°`; document.getElementById('max-int').textContent=`↑${ri.mx.toFixed(1)}°`; }
+  if (rw) { document.getElementById('min-water').textContent=`↓${rw.mn.toFixed(1)}°`; document.getElementById('max-water').textContent=`↑${rw.mx.toFixed(1)}°`; }
+}
+
+// ── Temps réel ─────────────────────────────────────────────
+async function loadLive() {
+  const data = await apiFetch('real_time', '&call_back=all');
+  const ch1 = data?.temp_and_humidity_ch1 || {};
+  const inn = data?.indoor                || {};
+  const ch2 = data?.temp_and_humidity_ch2 || {};
+
+  const v = (obj,k) => obj[k]?.value ?? '--';
+
+  document.getElementById('val-ext').innerHTML   = `${parseFloat(v(ch1,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
+  document.getElementById('val-int').innerHTML   = `${parseFloat(v(inn,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
+  document.getElementById('val-water').innerHTML = `${parseFloat(v(ch2,'temperature')).toFixed(1)}<span class="unit">°C</span>`;
+
+  const he = v(ch1,'humidity'), hi = v(inn,'humidity');
+  if (he!=='--') document.getElementById('hum-ext').textContent = `💧${he}%`;
+  if (hi!=='--') document.getElementById('hum-int').textContent = `💧${hi}%`;
+
+  const t = new Date();
+  document.getElementById('status').textContent =
+    `✅ ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
+}
+
+// ── Démarrage ──────────────────────────────────────────────
+async function init() {
+  try {
+    document.getElementById('status').textContent = 'Chargement historique…';
+    await loadHistory();
+    await loadLive();
+    setInterval(loadLive, 60000);
+    setInterval(loadHistory, 5 * 60 * 1000); // refresh historique toutes les 5 min
+  } catch(e) {
+    document.getElementById('status').textContent = '❌ ' + e.message;
+  }
+}
+
+init();
 </script>
 </body>
 </html>
