@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Chalet Savard — Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🏡 Chalet Savard — Dashboard Premium</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+
 :root{
-  --bg:#0a1119;
+  --bg:#081018;
   --panel:rgba(17,22,29,0.72);
   --border:rgba(255,255,255,0.06);
-  --text:#eaf2ff;
-  --muted:#7c8ca3;
+  --text:#eef5ff;
+  --muted:#7d8da5;
+
   --blue:#00c8ff;
   --green:#39d98a;
   --purple:#7b61ff;
+  --orange:#ff8c42;
 }
 
 *{
@@ -28,26 +35,68 @@
 }
 
 body{
-  font-family:Inter,sans-serif;
-  background: radial-gradient(circle at top left, rgba(0,200,255,0.12), transparent 25%),
-              radial-gradient(circle at bottom right, rgba(123,97,255,0.12), transparent 25%),
-              var(--bg);
+  font-family:'Inter',sans-serif;
   color:var(--text);
+
+  background:
+    radial-gradient(circle at top left, rgba(0,200,255,0.12), transparent 25%),
+    radial-gradient(circle at bottom right, rgba(123,97,255,0.12), transparent 25%),
+    linear-gradient(180deg,#071018,#0b121b);
+
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+.container{
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
 }
 
 /* HEADER */
+
 .header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:20px;
+
+  background:var(--panel);
+  border:1px solid var(--border);
+
+  backdrop-filter:blur(16px);
+
+  border-radius:24px;
+
+  padding:22px 26px;
+
+  box-shadow:0 10px 40px rgba(0,0,0,.3);
+}
+
+.title h1{
+  font-size:1.7rem;
+  margin-bottom:6px;
+}
+
+.title p{
+  color:var(--muted);
 }
 
 .live{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:12px;
+
+  background:rgba(57,217,138,0.08);
+
+  border:1px solid rgba(57,217,138,0.15);
+
+  padding:10px 18px;
+
+  border-radius:999px;
+
   color:var(--green);
+
   font-weight:600;
 }
 
@@ -56,174 +105,910 @@ body{
   height:10px;
   border-radius:50%;
   background:var(--green);
+  box-shadow:0 0 12px var(--green);
+
   animation:pulse 2s infinite;
 }
 
 @keyframes pulse{
-  0%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.4);opacity:.4;}
-  100%{transform:scale(1);opacity:1;}
+  0%{transform:scale(1);}
+  50%{transform:scale(1.5);opacity:.5;}
+  100%{transform:scale(1);}
+}
+
+/* TOOLBAR */
+
+.toolbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.group{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  background:rgba(255,255,255,0.04);
+
+  border:1px solid var(--border);
+
+  color:var(--muted);
+
+  padding:10px 16px;
+
+  border-radius:14px;
+
+  cursor:pointer;
+
+  transition:.2s ease;
+
+  font-weight:600;
+}
+
+.btn:hover,
+.btn.active{
+  transform:translateY(-2px);
+
+  color:white;
+
+  border-color:rgba(255,255,255,.18);
+
+  box-shadow:0 8px 30px rgba(0,0,0,.25);
+}
+
+/* ALERTS */
+
+.alerts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.alert{
+  padding:12px 16px;
+  border-radius:14px;
+  font-size:.85rem;
+  font-weight:600;
+}
+
+.alert.info{
+  background:rgba(0,200,255,.08);
+  color:var(--blue);
+  border:1px solid rgba(0,200,255,.15);
+}
+
+.alert.warn{
+  background:rgba(255,140,66,.08);
+  color:var(--orange);
+  border:1px solid rgba(255,140,66,.15);
 }
 
 /* CARDS */
+
 .cards{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
-  padding:0 20px;
+  gap:16px;
 }
 
 .card{
+  position:relative;
+
+  overflow:hidden;
+
   background:var(--panel);
+
   border:1px solid var(--border);
-  border-radius:20px;
-  padding:18px;
+
+  backdrop-filter:blur(16px);
+
+  border-radius:28px;
+
+  padding:24px;
+
+  transition:.25s ease;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+}
+
+.card::before{
+  content:'';
+
+  position:absolute;
+
+  top:-50px;
+  right:-50px;
+
+  width:160px;
+  height:160px;
+
+  border-radius:50%;
+
+  background:radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
+}
+
+.label{
+  font-size:.74rem;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:16px;
 }
 
 .value{
-  font-size:3rem;
+  font-size:4rem;
   font-weight:700;
+  line-height:1;
+}
+
+.unit{
+  font-size:1.3rem;
+  opacity:.65;
+}
+
+.meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:16px;
+  color:var(--muted);
+  font-size:.85rem;
 }
 
 /* GRID */
-.grid{
+
+.grid3{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
-  padding:20px;
+  gap:16px;
 }
 
-/* IMPORTANT FIX ICI */
+.grid2{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:16px;
+}
+
+/* PANEL */
+
 .panel{
   background:var(--panel);
+
   border:1px solid var(--border);
-  border-radius:20px;
-  padding:16px;
-  height:320px;              /* 🔥 FIX HAUTEUR STABLE */
+
+  border-radius:28px;
+
+  backdrop-filter:blur(16px);
+
+  padding:20px;
+
+  box-shadow:0 10px 35px rgba(0,0,0,.25);
+
+  height:340px;
+
   display:flex;
   flex-direction:column;
 }
 
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+}
+
+.panel-title{
+  font-size:.85rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  font-weight:600;
+}
+
+.panel-sub{
+  color:var(--muted);
+  font-size:.8rem;
+}
+
 canvas{
-  flex:1;                    /* 🔥 empêche débordement */
+  flex:1;
   width:100% !important;
   height:100% !important;
 }
 
-/* responsive */
-@media(max-width:900px){
-  .cards,.grid{
+/* TABLE */
+
+.table-panel{
+  background:var(--panel);
+
+  border:1px solid var(--border);
+
+  border-radius:28px;
+
+  backdrop-filter:blur(16px);
+
+  overflow:hidden;
+}
+
+.table-head{
+  padding:18px 22px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+
+  display:flex;
+  justify-content:space-between;
+}
+
+.table-wrap{
+  max-height:420px;
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+thead{
+  position:sticky;
+  top:0;
+  background:#111823;
+}
+
+th{
+  text-align:left;
+  padding:14px;
+  color:var(--muted);
+  font-size:.72rem;
+  text-transform:uppercase;
+}
+
+td{
+  padding:14px;
+  border-bottom:1px solid rgba(255,255,255,.03);
+  font-size:.86rem;
+}
+
+tr:hover td{
+  background:rgba(255,255,255,.02);
+}
+
+/* FOOTER */
+
+.footer{
+  display:flex;
+  justify-content:space-between;
+  color:var(--muted);
+  font-size:.8rem;
+  padding:0 4px;
+}
+
+/* MOBILE */
+
+@media(max-width:1100px){
+
+  .cards,
+  .grid3,
+  .grid2{
     grid-template-columns:1fr;
   }
+
+  .header{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:18px;
+  }
+
+  .value{
+    font-size:3rem;
+  }
+
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <div>
-    <h2>🏡 Chalet Savard</h2>
-    <small>Dashboard météo intelligent</small>
+<div class="container">
+
+  <div class="header">
+
+    <div class="title">
+      <h1>🏡 Chalet Savard</h1>
+      <p>Ecowitt GW3000B · Dashboard météo premium</p>
+    </div>
+
+    <div class="live">
+      <div class="dot"></div>
+      <span id="status">Connexion...</span>
+    </div>
+
   </div>
 
-  <div class="live">
-    <div class="dot"></div>
-    EN DIRECT
+  <!-- ALERTS -->
+
+  <div class="alerts" id="alerts"></div>
+
+  <!-- CARDS -->
+
+  <div class="cards">
+
+    <div class="card">
+
+      <div class="label">Extérieure</div>
+
+      <div class="value" style="color:var(--blue)">
+        <span id="ext-temp">--</span><span class="unit">°C</span>
+      </div>
+
+      <div class="meta">
+        <span id="ext-hum">💧 --%</span>
+        <span id="ext-min">↓ --</span>
+        <span id="ext-max">↑ --</span>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <div class="label">Intérieure</div>
+
+      <div class="value" style="color:var(--green)">
+        <span id="int-temp">--</span><span class="unit">°C</span>
+      </div>
+
+      <div class="meta">
+        <span id="int-hum">💧 --%</span>
+        <span id="int-min">↓ --</span>
+        <span id="int-max">↑ --</span>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <div class="label">Eau</div>
+
+      <div class="value" style="color:var(--purple)">
+        <span id="water-temp">--</span><span class="unit">°C</span>
+      </div>
+
+      <div class="meta">
+        <span id="water-min">↓ --</span>
+        <span id="water-max">↑ --</span>
+      </div>
+
+    </div>
+
   </div>
-</div>
 
-<!-- CARDS -->
-<div class="cards">
-  <div class="card">
-    <div>Extérieur</div>
-    <div class="value" style="color:var(--blue)">18.4°</div>
+  <!-- TEMP CHARTS -->
+
+  <div class="grid3">
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Température extérieure</div>
+        <div class="panel-sub" id="range-ext"></div>
+      </div>
+
+      <canvas id="chart-ext"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Température intérieure</div>
+        <div class="panel-sub" id="range-int"></div>
+      </div>
+
+      <canvas id="chart-int"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Température eau</div>
+        <div class="panel-sub" id="range-water"></div>
+      </div>
+
+      <canvas id="chart-water"></canvas>
+    </div>
+
   </div>
 
-  <div class="card">
-    <div>Intérieur</div>
-    <div class="value" style="color:var(--green)">21.7°</div>
+  <!-- COMPARISON -->
+
+  <div class="grid2">
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Comparaison officielle</div>
+        <div class="panel-sub">Open-Meteo</div>
+      </div>
+
+      <canvas id="chart-compare"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Humidité</div>
+        <div class="panel-sub">Int. vs Ext.</div>
+      </div>
+
+      <canvas id="chart-hum"></canvas>
+    </div>
+
   </div>
 
-  <div class="card">
-    <div>Eau</div>
-    <div class="value" style="color:var(--purple)">5.8°</div>
+  <!-- TABLE -->
+
+  <div class="table-panel">
+
+    <div class="table-head">
+      <div>Historique 24h</div>
+      <div id="table-count"></div>
+    </div>
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Heure</th>
+            <th>Ext.</th>
+            <th>Int.</th>
+            <th>Eau</th>
+            <th>Hum. Ext.</th>
+            <th>Hum. Int.</th>
+          </tr>
+        </thead>
+
+        <tbody id="tbody"></tbody>
+
+      </table>
+
+    </div>
+
   </div>
-</div>
 
-<!-- GRAPHIQUES -->
-<div class="grid">
-
-  <div class="panel">
-    <h4>Température extérieure</h4>
-    <canvas id="c1"></canvas>
-  </div>
-
-  <div class="panel">
-    <h4>Température intérieure</h4>
-    <canvas id="c2"></canvas>
-  </div>
-
-  <div class="panel">
-    <h4>Température eau</h4>
-    <canvas id="c3"></canvas>
+  <div class="footer">
+    <div>GW3000B · Ecowitt + Open-Meteo</div>
+    <div>Appuie sur F pour plein écran</div>
   </div>
 
 </div>
 
 <script>
 
-/* GRADIENT */
+/* API */
+
+const APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
+const API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
+const MAC     = '84:1F:E8:35:E4:93';
+
+const LAT = 48.6462;
+const LON = -72.4422;
+
+/* CHARTS */
+
+const charts = {};
+
 function gradient(ctx,color){
+
   const g = ctx.createLinearGradient(0,0,0,300);
-  g.addColorStop(0,color.replace('rgb','rgba').replace(')',',0.35)'));
-  g.addColorStop(1,color.replace('rgb','rgba').replace(')',',0'));
+
+  g.addColorStop(
+    0,
+    color.replace('rgb','rgba').replace(')',',0.35)')
+  );
+
+  g.addColorStop(
+    1,
+    color.replace('rgb','rgba').replace(')',',0)')
+  );
+
   return g;
 }
 
-/* DATA MOCK */
-function data(base){
-  return Array.from({length:12},()=>base + (Math.random()*4-2));
-}
+function makeChart(id,color){
 
-function labels(){
-  return ['00h','02h','04h','06h','08h','10h','12h','14h','16h','18h','20h','22h'];
-}
-
-/* CHART */
-function make(id,color,val){
   const ctx = document.getElementById(id).getContext('2d');
 
   return new Chart(ctx,{
+
     type:'line',
+
     data:{
-      labels:labels(),
+      labels:[],
       datasets:[{
-        data:val,
+        data:[],
         borderColor:color,
         backgroundColor:gradient(ctx,color),
         fill:true,
-        tension:0.35,
-        pointRadius:0,
-        borderWidth:2
+        tension:.35,
+        borderWidth:2,
+        pointRadius:0
       }]
     },
+
     options:{
       responsive:true,
-      maintainAspectRatio:false,   // 🔥 CRUCIAL
-      plugins:{legend:{display:false}},
+      maintainAspectRatio:false,
+
+      plugins:{
+        legend:{display:false}
+      },
+
       scales:{
-        x:{ticks:{color:'#7c8ca3'},grid:{color:'rgba(255,255,255,0.03)'}},
-        y:{ticks:{color:'#7c8ca3'},grid:{color:'rgba(255,255,255,0.03)'}}
+
+        x:{
+          ticks:{color:'#7d8da5'},
+          grid:{color:'rgba(255,255,255,.03)'}
+        },
+
+        y:{
+          ticks:{color:'#7d8da5'},
+          grid:{color:'rgba(255,255,255,.03)'}
+        }
+
       }
+
     }
+
   });
+
 }
 
+charts.ext   = makeChart('chart-ext','rgb(0,200,255)');
+charts.int   = makeChart('chart-int','rgb(57,217,138)');
+charts.water = makeChart('chart-water','rgb(123,97,255)');
+charts.hum   = makeChart('chart-hum','rgb(57,217,138)');
+charts.comp  = makeChart('chart-compare','rgb(0,200,255)');
+
+/* FETCH */
+
+async function apiFetch(endpoint, params='') {
+
+  const base =
+    `https://api.ecowitt.net/api/v3/device/${endpoint}` +
+    `?application_key=${APP_KEY}` +
+    `&api_key=${API_KEY}` +
+    `&mac=${MAC}` +
+    `&temp_unitid=1${params}`;
+
+  const urls = [
+    base,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`
+  ];
+
+  for(const url of urls){
+
+    try{
+
+      const r = await fetch(url);
+
+      const j = await r.json();
+
+      if(j.code === 0){
+        return j.data;
+      }
+
+    }catch(e){}
+
+  }
+
+  throw new Error('Connexion Ecowitt impossible');
+
+}
+
+/* LIVE */
+
+async function loadLive(){
+
+  try{
+
+    const data = await apiFetch('real_time','&call_back=all');
+
+    const ch1 = data.temp_and_humidity_ch1 || {};
+    const inn = data.indoor || {};
+    const ch2 = data.temp_and_humidity_ch2 || {};
+
+    const get = (o,k)=>o[k]?.value ?? null;
+
+    const te = get(ch1,'temperature');
+    const ti = get(inn,'temperature');
+    const tw = get(ch2,'temperature');
+
+    const he = get(ch1,'humidity');
+    const hi = get(inn,'humidity');
+
+    if(te !== null)
+      document.getElementById('ext-temp').textContent =
+        parseFloat(te).toFixed(1);
+
+    if(ti !== null)
+      document.getElementById('int-temp').textContent =
+        parseFloat(ti).toFixed(1);
+
+    if(tw !== null)
+      document.getElementById('water-temp').textContent =
+        parseFloat(tw).toFixed(1);
+
+    document.getElementById('ext-hum').textContent = `💧 ${he}%`;
+    document.getElementById('int-hum').textContent = `💧 ${hi}%`;
+
+    buildAlerts(te,he);
+
+    const now = new Date();
+
+    document.getElementById('status').textContent =
+      `Synchronisé ${now.toLocaleTimeString()}`;
+
+  }catch(e){
+
+    document.getElementById('status').textContent =
+      'Erreur connexion';
+
+  }
+
+}
+
+/* ALERTS */
+
+function buildAlerts(temp,hum){
+
+  const alerts = [];
+
+  if(temp <= 2){
+    alerts.push('<div class=\"alert warn\">❄️ Risque de gel détecté</div>');
+  }
+
+  if(hum >= 85){
+    alerts.push('<div class=\"alert info\">💧 Humidité extérieure élevée</div>');
+  }
+
+  if(temp >= 28){
+    alerts.push('<div class=\"alert warn\">🔥 Température élevée</div>');
+  }
+
+  document.getElementById('alerts').innerHTML =
+    alerts.join('');
+
+}
+
+/* HISTORY */
+
+async function loadHistory(){
+
+  const now = Math.floor(Date.now()/1000);
+
+  const start = now - 24*3600;
+
+  const pad = x=>String(x).padStart(2,'0');
+
+  const fmt = ts=>{
+
+    const d = new Date(ts*1000);
+
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ` +
+           `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+
+  };
+
+  const data = await apiFetch(
+    'history',
+    `&start_date=${encodeURIComponent(fmt(start))}` +
+    `&end_date=${encodeURIComponent(fmt(now))}` +
+    `&call_back=` +
+    `indoor.temperature,` +
+    `indoor.humidity,` +
+    `temp_and_humidity_ch1.temperature,` +
+    `temp_and_humidity_ch1.humidity,` +
+    `temp_and_humidity_ch2.temperature`
+  );
+
+  function parse(obj,...keys){
+
+    let c = obj;
+
+    for(const k of keys){
+      c = c?.[k];
+    }
+
+    if(!c?.list) return [];
+
+    return Object.entries(c.list)
+      .map(([t,v])=>({
+        t:parseInt(t),
+        v:parseFloat(v)
+      }))
+      .filter(x=>!isNaN(x.v))
+      .sort((a,b)=>a.t-b.t);
+
+  }
+
+  const ext  = parse(data,'temp_and_humidity_ch1','temperature');
+  const intd = parse(data,'indoor','temperature');
+  const wat  = parse(data,'temp_and_humidity_ch2','temperature');
+
+  const hext = parse(data,'temp_and_humidity_ch1','humidity');
+  const hint = parse(data,'indoor','humidity');
+
+  updateChart(charts.ext,ext);
+  updateChart(charts.int,intd);
+  updateChart(charts.water,wat);
+
+  updateHumChart(hext,hint);
+
+  buildTable(ext,intd,wat,hext,hint);
+
+  setRanges(ext,'ext');
+  setRanges(intd,'int');
+  setRanges(wat,'water');
+
+}
+
+/* UPDATE CHART */
+
+function updateChart(chart,data){
+
+  chart.data.labels = data.map(x=>{
+
+    const d = new Date(x.t*1000);
+
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  });
+
+  chart.data.datasets[0].data = data.map(x=>x.v);
+
+  chart.update();
+
+}
+
+/* HUMIDITY */
+
+function updateHumChart(ext,intd){
+
+  charts.hum.data.labels = ext.map(x=>{
+
+    const d = new Date(x.t*1000);
+
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  });
+
+  charts.hum.data.datasets = [
+
+    {
+      label:'Ext.',
+      data:ext.map(x=>x.v),
+      borderColor:'rgb(0,200,255)',
+      backgroundColor:'rgba(0,200,255,.15)',
+      fill:true,
+      tension:.35,
+      pointRadius:0
+    },
+
+    {
+      label:'Int.',
+      data:intd.map(x=>x.v),
+      borderColor:'rgb(57,217,138)',
+      backgroundColor:'rgba(57,217,138,.15)',
+      fill:true,
+      tension:.35,
+      pointRadius:0
+    }
+
+  ];
+
+  charts.hum.options.plugins.legend = {
+    labels:{color:'#c7d4e9'}
+  };
+
+  charts.hum.update();
+
+}
+
+/* TABLE */
+
+function buildTable(ext,intd,wat,hext,hint){
+
+  const tbody = document.getElementById('tbody');
+
+  const rows = ext.slice(-48).reverse();
+
+  const closest = (arr,t)=>{
+
+    const c = arr.reduce((a,b)=>
+      Math.abs(a.t-t) < Math.abs(b.t-t)
+      ? a
+      : b
+    );
+
+    return c?.v ?? null;
+
+  };
+
+  tbody.innerHTML = rows.map(r=>{
+
+    const d = new Date(r.t*1000);
+
+    const time =
+      `${String(d.getHours()).padStart(2,'0')}:` +
+      `${String(d.getMinutes()).padStart(2,'0')}`;
+
+    return `
+      <tr>
+        <td>${time}</td>
+        <td>${r.v.toFixed(1)}°</td>
+        <td>${closest(intd,r.t)?.toFixed(1) ?? '--'}°</td>
+        <td>${closest(wat,r.t)?.toFixed(1) ?? '--'}°</td>
+        <td>${closest(hext,r.t)?.toFixed(0) ?? '--'}%</td>
+        <td>${closest(hint,r.t)?.toFixed(0) ?? '--'}%</td>
+      </tr>
+    `;
+
+  }).join('');
+
+  document.getElementById('table-count').textContent =
+    `${rows.length} entrées`;
+
+}
+
+/* RANGE */
+
+function setRanges(data,key){
+
+  if(!data.length) return;
+
+  const vals = data.map(x=>x.v);
+
+  const mn = Math.min(...vals);
+  const mx = Math.max(...vals);
+
+  document.getElementById(`range-${key}`).textContent =
+    `↓ ${mn.toFixed(1)}° ↑ ${mx.toFixed(1)}°`;
+
+}
+
+/* FULLSCREEN */
+
+document.addEventListener('keydown',e=>{
+
+  if(e.key.toLowerCase()==='f'){
+
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen();
+    }else{
+      document.exitFullscreen();
+    }
+
+  }
+
+});
+
 /* INIT */
-make('c1','rgb(0,200,255)',data(15));
-make('c2','rgb(57,217,138)',data(21));
-make('c3','rgb(123,97,255)',data(6));
+
+async function init(){
+
+  await loadLive();
+
+  await loadHistory();
+
+  setInterval(loadLive,60000);
+
+  setInterval(loadHistory,300000);
+
+}
+
+init();
 
 </script>
 
