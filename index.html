@@ -3,1239 +3,775 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>🏡 Chalet Savard — Dashboard Premium</title>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-
 :root{
   --bg:#081018;
   --panel:rgba(17,22,29,0.75);
   --border:rgba(255,255,255,0.06);
-
   --text:#eef5ff;
   --muted:#7f8ea3;
-
   --blue:#00c8ff;
   --green:#39d98a;
   --purple:#7b61ff;
   --orange:#ff8c42;
+  --pink:#ff61a6;
+  --teal:#00e5cc;
 }
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
+*{margin:0;padding:0;box-sizing:border-box;}
 body{
   font-family:'Inter',sans-serif;
   background:
     radial-gradient(circle at top left, rgba(0,200,255,.12), transparent 25%),
     radial-gradient(circle at bottom right, rgba(123,97,255,.12), transparent 25%),
     linear-gradient(180deg,#071018,#0d141d);
-
   color:var(--text);
-
   min-height:100vh;
-
   overflow-x:hidden;
 }
-
-.container{
-  padding:18px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
+.container{padding:18px;display:flex;flex-direction:column;gap:16px;}
 
 /* HEADER */
-
 .header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-
   background:var(--panel);
-
   border:1px solid var(--border);
-
   border-radius:26px;
-
   backdrop-filter:blur(16px);
-
   padding:24px;
 }
-
-.title h1{
-  font-size:1.8rem;
-  margin-bottom:6px;
-}
-
-.title p{
+.title h1{font-size:1.8rem;margin-bottom:6px;}
+.title p{color:var(--muted);}
+.header-right{display:flex;align-items:center;gap:12px;}
+.versions-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
   color:var(--muted);
+  padding:10px 16px;
+  border-radius:999px;
+  text-decoration:none;
+  font-size:.82rem;
+  font-weight:600;
+  transition:.2s;
 }
-
+.versions-link:hover{color:white;border-color:rgba(255,255,255,.18);}
 .live{
   display:flex;
   align-items:center;
   gap:10px;
-
   background:rgba(57,217,138,.08);
-
   border:1px solid rgba(57,217,138,.15);
-
   color:var(--green);
-
   padding:12px 18px;
-
   border-radius:999px;
-
   font-weight:600;
 }
-
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  background:var(--green);
-
-  box-shadow:0 0 12px var(--green);
-
-  animation:pulse 2s infinite;
-}
-
-@keyframes pulse{
-  0%{transform:scale(1);}
-  50%{transform:scale(1.5);opacity:.5;}
-  100%{transform:scale(1);}
-}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.5);opacity:.5;}100%{transform:scale(1);}}
 
 /* TOOLBAR */
-
-.toolbar{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;}
 .btn{
   background:rgba(255,255,255,.04);
-
   border:1px solid var(--border);
-
   color:var(--muted);
-
   padding:10px 16px;
-
   border-radius:14px;
-
   cursor:pointer;
-
   transition:.2s;
-
   font-weight:600;
 }
-
-.btn:hover,
-.btn.active{
-  color:white;
-
-  transform:translateY(-2px);
-
-  border-color:rgba(255,255,255,.18);
-
-  box-shadow:0 8px 30px rgba(0,0,0,.25);
-}
+.btn:hover,.btn.active{color:white;transform:translateY(-2px);border-color:rgba(255,255,255,.18);box-shadow:0 8px 30px rgba(0,0,0,.25);}
 
 /* ALERTS */
+.alerts{display:flex;flex-wrap:wrap;gap:12px;}
+.alert{padding:12px 16px;border-radius:14px;font-size:.85rem;font-weight:600;}
+.alert.warn{background:rgba(255,140,66,.08);border:1px solid rgba(255,140,66,.15);color:var(--orange);}
+.alert.info{background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.15);color:var(--blue);}
 
-.alerts{
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-}
-
-.alert{
-  padding:12px 16px;
-  border-radius:14px;
-  font-size:.85rem;
+/* SECTION TITLE */
+.section-label{
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.18em;
+  color:var(--muted);
   font-weight:600;
-}
-
-.alert.warn{
-  background:rgba(255,140,66,.08);
-  border:1px solid rgba(255,140,66,.15);
-  color:var(--orange);
-}
-
-.alert.info{
-  background:rgba(0,200,255,.08);
-  border:1px solid rgba(0,200,255,.15);
-  color:var(--blue);
+  padding:0 4px;
 }
 
 /* CARDS */
-
-.cards{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-}
-
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .card{
   position:relative;
-
   overflow:hidden;
-
   background:var(--panel);
-
   border:1px solid var(--border);
-
   border-radius:28px;
-
   backdrop-filter:blur(16px);
-
   padding:24px;
-
   transition:.2s;
 }
-
-.card:hover{
-  transform:translateY(-3px);
-}
-
+.card:hover{transform:translateY(-3px);}
 .card::before{
   content:'';
-
   position:absolute;
-
-  top:-60px;
-  right:-60px;
-
-  width:180px;
-  height:180px;
-
+  top:-60px;right:-60px;
+  width:180px;height:180px;
   border-radius:50%;
-
   background:radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
 }
+.label{color:var(--muted);font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;}
+.value{font-size:3.4rem;font-weight:700;line-height:1;}
+.unit{font-size:1.2rem;opacity:.7;}
+.meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:.85rem;}
 
-.label{
-  color:var(--muted);
-
-  font-size:.74rem;
-
-  letter-spacing:.15em;
-
-  text-transform:uppercase;
-
-  margin-bottom:16px;
-}
-
-.value{
-  font-size:4rem;
-  font-weight:700;
-  line-height:1;
-}
-
-.unit{
-  font-size:1.4rem;
-  opacity:.7;
-}
-
-.meta{
-  display:flex;
-  gap:14px;
-  flex-wrap:wrap;
-
-  margin-top:16px;
-
-  color:var(--muted);
-
-  font-size:.85rem;
-}
-
-/* GRID */
-
-.grid3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-}
-
-.grid2{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:16px;
-}
-
-/* PANEL */
-
-.panel{
-  position:relative;
-
+/* PRESSION CARD */
+.pressure-card{
   background:var(--panel);
-
   border:1px solid var(--border);
-
   border-radius:28px;
-
   backdrop-filter:blur(16px);
-
-  padding:20px;
-
-  height:340px;
-
+  padding:24px;
   display:flex;
   flex-direction:column;
+  gap:10px;
+  transition:.2s;
 }
-
-.panel-head{
+.pressure-card:hover{transform:translateY(-3px);}
+.pressure-row{
   display:flex;
   justify-content:space-between;
   align-items:center;
-
-  margin-bottom:16px;
 }
-
-.panel-title{
-  font-size:.82rem;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  font-weight:600;
+.pressure-val{
+  font-size:2rem;
+  font-weight:700;
+  color:var(--orange);
 }
+.pressure-sub{color:var(--muted);font-size:.82rem;}
 
-.panel-sub{
-  color:var(--muted);
-  font-size:.8rem;
-}
+/* GRID */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
 
-canvas{
-  flex:1;
-  width:100% !important;
-  height:100% !important;
+/* PANEL */
+.panel{
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:28px;
+  backdrop-filter:blur(16px);
+  padding:20px;
+  height:300px;
+  display:flex;
+  flex-direction:column;
 }
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.panel-title{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.panel-sub{color:var(--muted);font-size:.8rem;}
+canvas{flex:1;width:100% !important;height:100% !important;}
 
 /* TOOLTIP */
-
 .chart-tooltip{
-
-  position:absolute;
-
-  pointer-events:none;
-
+  position:absolute;pointer-events:none;
   background:rgba(10,15,20,.96);
-
   border:1px solid rgba(255,255,255,.08);
-
   backdrop-filter:blur(14px);
-
-  color:white;
-
-  padding:10px 14px;
-
-  border-radius:14px;
-
-  font-size:.82rem;
-
-  min-width:170px;
-
-  z-index:999;
-
-  display:none;
-
+  color:white;padding:10px 14px;border-radius:14px;
+  font-size:.82rem;min-width:170px;z-index:999;display:none;
   box-shadow:0 10px 35px rgba(0,0,0,.4);
 }
-
-.chart-tooltip .tt-title{
-  color:#7f8ea3;
-  margin-bottom:8px;
-  font-size:.72rem;
-}
-
-.chart-tooltip .tt-row{
-  display:flex;
-  justify-content:space-between;
-  gap:18px;
-  margin:5px 0;
-}
+.chart-tooltip .tt-title{color:#7f8ea3;margin-bottom:8px;font-size:.72rem;}
+.chart-tooltip .tt-row{display:flex;justify-content:space-between;gap:18px;margin:5px 0;}
 
 /* TABLE */
-
-.table-panel{
-  background:var(--panel);
-
-  border:1px solid var(--border);
-
-  border-radius:28px;
-
-  overflow:hidden;
-}
-
-.table-head{
-  display:flex;
-  justify-content:space-between;
-
-  padding:18px 22px;
-
-  border-bottom:1px solid rgba(255,255,255,.04);
-}
-
-.table-wrap{
-  max-height:420px;
-  overflow:auto;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-thead{
-  position:sticky;
-  top:0;
-
-  background:#111823;
-}
-
-th{
-  text-align:left;
-
-  padding:14px;
-
-  color:var(--muted);
-
-  font-size:.72rem;
-
-  text-transform:uppercase;
-}
-
-td{
-  padding:14px;
-
-  border-bottom:1px solid rgba(255,255,255,.03);
-
-  font-size:.86rem;
-}
-
-tr:hover td{
-  background:rgba(255,255,255,.02);
-}
+.table-panel{background:var(--panel);border:1px solid var(--border);border-radius:28px;overflow:hidden;}
+.table-head{display:flex;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.04);}
+.table-wrap{max-height:400px;overflow:auto;}
+table{width:100%;border-collapse:collapse;}
+thead{position:sticky;top:0;background:#111823;}
+th{text-align:left;padding:12px 14px;color:var(--muted);font-size:.72rem;text-transform:uppercase;}
+td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.84rem;}
+tr:hover td{background:rgba(255,255,255,.02);}
 
 /* FOOTER */
-
-.footer{
-  display:flex;
-  justify-content:space-between;
-
-  color:var(--muted);
-
-  font-size:.8rem;
-}
+.footer{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;}
 
 /* MOBILE */
-
 @media(max-width:1100px){
-
-  .cards,
-  .grid3,
-  .grid2{
-    grid-template-columns:1fr;
-  }
-
-  .header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:18px;
-  }
-
-  .value{
-    font-size:3rem;
-  }
-
+  .cards,.cards-3,.grid3,.grid2{grid-template-columns:1fr 1fr;}
+  .header{flex-direction:column;align-items:flex-start;gap:14px;}
+  .header-right{width:100%;justify-content:space-between;}
+  .value{font-size:2.8rem;}
 }
-
+@media(max-width:600px){
+  .cards,.cards-3,.grid3,.grid2{grid-template-columns:1fr;}
+}
 </style>
 </head>
-
 <body>
-
 <div class="container">
 
   <!-- HEADER -->
-
   <div class="header">
-
     <div class="title">
       <h1>🏡 Chalet Savard</h1>
       <p>Ecowitt GW3000B · Dashboard météo premium</p>
     </div>
-
-    <div class="live">
-      <div class="dot"></div>
-      <span id="status">Connexion...</span>
+    <div class="header-right">
+      <a href="versions.html" class="versions-link">📋 Versions</a>
+      <div class="live">
+        <div class="dot"></div>
+        <span id="status">Connexion...</span>
+      </div>
     </div>
-
   </div>
 
   <!-- TOOLBAR -->
-
   <div class="toolbar">
-
     <button class="btn range-btn active" data-range="1d">1 Jour</button>
     <button class="btn range-btn" data-range="1w">1 Semaine</button>
     <button class="btn range-btn" data-range="1m">1 Mois</button>
     <button class="btn range-btn" data-range="3m">3 Mois</button>
     <button class="btn range-btn" data-range="1y">Annuel</button>
-
   </div>
 
   <!-- ALERTS -->
-
   <div class="alerts" id="alerts"></div>
 
-  <!-- CARDS -->
+  <!-- SECTION : PRINCIPAL -->
+  <div class="section-label">Capteurs principaux</div>
 
   <div class="cards">
-
     <div class="card">
-
       <div class="label">Extérieure</div>
-
-      <div class="value" style="color:var(--blue)">
-        <span id="ext-temp">--</span><span class="unit">°C</span>
-      </div>
-
-      <div class="meta">
-        <span id="ext-hum">💧 --%</span>
-        <span id="ext-min">↓ --</span>
-        <span id="ext-max">↑ --</span>
-      </div>
-
+      <div class="value" style="color:var(--blue)"><span id="ext-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="ext-hum">💧 --%</span><span id="ext-min">↓ --</span><span id="ext-max">↑ --</span></div>
     </div>
-
     <div class="card">
-
       <div class="label">Intérieure</div>
-
-      <div class="value" style="color:var(--green)">
-        <span id="int-temp">--</span><span class="unit">°C</span>
-      </div>
-
-      <div class="meta">
-        <span id="int-hum">💧 --%</span>
-        <span id="int-min">↓ --</span>
-        <span id="int-max">↑ --</span>
-      </div>
-
+      <div class="value" style="color:var(--green)"><span id="int-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="int-hum">💧 --%</span><span id="int-min">↓ --</span><span id="int-max">↑ --</span></div>
     </div>
-
     <div class="card">
-
-      <div class="label">Eau</div>
-
-      <div class="value" style="color:var(--purple)">
-        <span id="water-temp">--</span><span class="unit">°C</span>
-      </div>
-
-      <div class="meta">
-        <span id="water-min">↓ --</span>
-        <span id="water-max">↑ --</span>
-      </div>
-
+      <div class="label">Eau (rivière)</div>
+      <div class="value" style="color:var(--purple)"><span id="water-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="water-min">↓ --</span><span id="water-max">↑ --</span></div>
     </div>
-
+    <div class="pressure-card">
+      <div class="label">Pression baro.</div>
+      <div class="pressure-val"><span id="pres-rel">--</span><span style="font-size:1rem;opacity:.7"> hPa</span></div>
+      <div class="pressure-sub">Relative</div>
+      <div style="margin-top:4px;color:var(--muted);font-size:.82rem;">Absolue : <span id="pres-abs">--</span> hPa</div>
+      <div id="pres-trend" style="margin-top:8px;font-size:.82rem;color:var(--muted);">--</div>
+    </div>
   </div>
 
-  <!-- TEMP CHARTS -->
-
+  <!-- GRAPHIQUES PRINCIPAUX -->
   <div class="grid3">
-
     <div class="panel">
-
       <div class="panel-head">
-        <div class="panel-title">Température extérieure</div>
+        <div class="panel-title">Temp. extérieure</div>
         <div class="panel-sub" id="range-ext"></div>
       </div>
-
       <canvas id="chart-ext"></canvas>
-
     </div>
-
     <div class="panel">
-
       <div class="panel-head">
-        <div class="panel-title">Température intérieure</div>
+        <div class="panel-title">Temp. intérieure</div>
         <div class="panel-sub" id="range-int"></div>
       </div>
-
       <canvas id="chart-int"></canvas>
-
     </div>
-
     <div class="panel">
-
       <div class="panel-head">
-        <div class="panel-title">Température eau</div>
+        <div class="panel-title">Temp. eau</div>
         <div class="panel-sub" id="range-water"></div>
       </div>
-
       <canvas id="chart-water"></canvas>
-
     </div>
-
   </div>
 
-  <!-- HUM + COMP -->
+  <!-- SECTION : AUTRES PIÈCES -->
+  <div class="section-label">Autres pièces</div>
 
-  <div class="grid2">
+  <div class="cards-3">
+    <div class="card">
+      <div class="label">🪨 Cave</div>
+      <div class="value" style="color:var(--teal)"><span id="cave-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="cave-hum">💧 --%</span><span id="cave-min">↓ --</span><span id="cave-max">↑ --</span></div>
+    </div>
+    <div class="card">
+      <div class="label">🛏 Chambre des maîtres</div>
+      <div class="value" style="color:var(--pink)"><span id="master-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="master-hum">💧 --%</span><span id="master-min">↓ --</span><span id="master-max">↑ --</span></div>
+    </div>
+    <div class="card">
+      <div class="label">🌿 Serre</div>
+      <div class="value" style="color:var(--orange)"><span id="serre-temp">--</span><span class="unit">°C</span></div>
+      <div class="meta"><span id="serre-hum">💧 --%</span><span id="serre-min">↓ --</span><span id="serre-max">↑ --</span></div>
+    </div>
+  </div>
 
+  <!-- GRAPHIQUES AUTRES PIÈCES -->
+  <div class="grid3">
     <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🪨 Cave</div>
+        <div class="panel-sub" id="range-cave"></div>
+      </div>
+      <canvas id="chart-cave"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🛏 Chambre des maîtres</div>
+        <div class="panel-sub" id="range-master"></div>
+      </div>
+      <canvas id="chart-master"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🌿 Serre</div>
+        <div class="panel-sub" id="range-serre"></div>
+      </div>
+      <canvas id="chart-serre"></canvas>
+    </div>
+  </div>
 
+  <!-- HUM + PRESSION -->
+  <div class="grid2">
+    <div class="panel">
       <div class="panel-head">
         <div class="panel-title">Humidité</div>
-        <div class="panel-sub">Ext. vs Int.</div>
+        <div class="panel-sub">Ext. vs Int. vs Cave</div>
       </div>
-
       <canvas id="chart-hum"></canvas>
-
     </div>
-
     <div class="panel">
-
       <div class="panel-head">
-        <div class="panel-title">Comparaison officielle</div>
-        <div class="panel-sub">Open-Meteo</div>
+        <div class="panel-title">Pression barométrique</div>
+        <div class="panel-sub" id="range-pres"></div>
       </div>
-
-      <canvas id="chart-compare"></canvas>
-
+      <canvas id="chart-pres"></canvas>
     </div>
-
   </div>
 
   <!-- TABLE -->
-
   <div class="table-panel">
-
     <div class="table-head">
       <div>Historique</div>
       <div id="table-count"></div>
     </div>
-
     <div class="table-wrap">
-
       <table>
-
         <thead>
           <tr>
             <th>Heure</th>
             <th>Ext.</th>
             <th>Int.</th>
             <th>Eau</th>
-            <th>Hum. Ext.</th>
-            <th>Hum. Int.</th>
+            <th>🪨 Cave</th>
+            <th>🛏 Chambre</th>
+            <th>🌿 Serre</th>
+            <th>Hum.Ext</th>
+            <th>Hum.Int</th>
           </tr>
         </thead>
-
         <tbody id="tbody"></tbody>
-
       </table>
-
     </div>
-
   </div>
 
   <div class="footer">
-    <div>GW3000B · Ecowitt + Open-Meteo</div>
-    <div>Appuie sur F pour plein écran</div>
+    <div>GW3000B · Ecowitt · 8 capteurs actifs</div>
+    <div><a href="versions.html" style="color:var(--muted);text-decoration:none;">📋 Versions</a> &nbsp;·&nbsp; F = plein écran</div>
   </div>
 
 </div>
 
 <script>
-
-/* CONFIG */
-
+/* ─── CONFIG ─── */
 const APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
 const API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
 const MAC     = '84:1F:E8:35:E4:93';
 
+const INHG_TO_HPA = 33.8639;
+
 let CURRENT_RANGE = '1d';
 
-/* CHARTS */
-
+/* ─── CHARTS MAP ─── */
 const charts = {};
 
-/* CROSSHAIR */
-
+/* ─── CROSSHAIR PLUGIN ─── */
 Chart.register({
-
   id:'crosshair',
-
   afterDraw(chart){
-
     if(chart._active?.length){
-
-      const ctx = chart.ctx;
-
-      const x = chart._active[0].element.x;
-
-      const topY = chart.scales.y.top;
-      const bottomY = chart.scales.y.bottom;
-
-      ctx.save();
-
-      ctx.beginPath();
-
-      ctx.moveTo(x,topY);
-      ctx.lineTo(x,bottomY);
-
-      ctx.lineWidth = 1;
-
-      ctx.strokeStyle = 'rgba(255,255,255,.15)';
-
-      ctx.setLineDash([5,5]);
-
-      ctx.stroke();
-
-      ctx.restore();
-
+      const ctx=chart.ctx;
+      const x=chart._active[0].element.x;
+      const topY=chart.scales.y.top;
+      const bottomY=chart.scales.y.bottom;
+      ctx.save();ctx.beginPath();ctx.moveTo(x,topY);ctx.lineTo(x,bottomY);
+      ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.15)';ctx.setLineDash([5,5]);
+      ctx.stroke();ctx.restore();
     }
-
   }
-
 });
 
-/* GRADIENT */
-
+/* ─── GRADIENT ─── */
 function gradient(ctx,color){
-
-  const g = ctx.createLinearGradient(0,0,0,300);
-
-  g.addColorStop(
-    0,
-    color.replace('rgb','rgba').replace(')',',0.35)')
-  );
-
-  g.addColorStop(
-    1,
-    color.replace('rgb','rgba').replace(')',',0)')
-  );
-
+  const g=ctx.createLinearGradient(0,0,0,260);
+  g.addColorStop(0,color.replace('rgb','rgba').replace(')',',0.32)'));
+  g.addColorStop(1,color.replace('rgb','rgba').replace(')',',0)'));
   return g;
 }
 
-/* CHART */
-
-function makeChart(id,color){
-
-  const canvas = document.getElementById(id);
-
-  const ctx = canvas.getContext('2d');
-
-  const tooltip = document.createElement('div');
-
-  tooltip.className = 'chart-tooltip';
-
+/* ─── MAKE CHART ─── */
+function makeChart(id,color,label='Valeur'){
+  const canvas=document.getElementById(id);
+  const ctx=canvas.getContext('2d');
+  const tooltip=document.createElement('div');
+  tooltip.className='chart-tooltip';
   document.body.appendChild(tooltip);
 
   return new Chart(ctx,{
-
     type:'line',
-
     data:{
       labels:[],
       datasets:[{
-        label:'Valeur',
-        data:[],
+        label,data:[],
         borderColor:color,
         backgroundColor:gradient(ctx,color),
-        fill:true,
-        tension:.35,
-        borderWidth:2,
-        pointRadius:0,
-        pointHoverRadius:5
+        fill:true,tension:.35,borderWidth:2,pointRadius:0,pointHoverRadius:5
       }]
     },
-
     options:{
-
-      responsive:true,
-
-      maintainAspectRatio:false,
-
-      interaction:{
-        intersect:false,
-        mode:'index'
-      },
-
-      plugins:{
-        legend:{display:false},
-        tooltip:{enabled:false}
-      },
-
+      responsive:true,maintainAspectRatio:false,
+      interaction:{intersect:false,mode:'index'},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{
-
-        x:{
-          ticks:{color:'#7f8ea3'},
-          grid:{color:'rgba(255,255,255,.03)'}
-        },
-
-        y:{
-          ticks:{color:'#7f8ea3'},
-          grid:{color:'rgba(255,255,255,.03)'}
-        }
-
+        x:{ticks:{color:'#7f8ea3'},grid:{color:'rgba(255,255,255,.03)'}},
+        y:{ticks:{color:'#7f8ea3'},grid:{color:'rgba(255,255,255,.03)'}}
       },
-
       onHover:(event,elements,chart)=>{
-
-        if(!elements.length){
-
-          tooltip.style.display='none';
-
-          return;
-
-        }
-
-        const idx = elements[0].index;
-
-        const rect = canvas.getBoundingClientRect();
-
-        let html =
-          `<div class="tt-title">${chart.data.labels[idx]}</div>`;
-
+        if(!elements.length){tooltip.style.display='none';return;}
+        const idx=elements[0].index;
+        const rect=canvas.getBoundingClientRect();
+        let html=`<div class="tt-title">${chart.data.labels[idx]}</div>`;
         chart.data.datasets.forEach(ds=>{
-
-          const val = ds.data[idx];
-
-          if(val === undefined) return;
-
-          html += `
-            <div class="tt-row">
-              <span>${ds.label}</span>
-              <strong>${parseFloat(val).toFixed(1)}</strong>
-            </div>
-          `;
-
+          const val=ds.data[idx];
+          if(val===undefined)return;
+          html+=`<div class="tt-row"><span>${ds.label}</span><strong>${parseFloat(val).toFixed(1)}</strong></div>`;
         });
-
-        tooltip.innerHTML = html;
-
-        tooltip.style.display='block';
-
-        tooltip.style.left =
-          (rect.left + window.scrollX + elements[0].element.x + 18) + 'px';
-
-        tooltip.style.top =
-          (rect.top + window.scrollY + elements[0].element.y - 20) + 'px';
-
+        tooltip.innerHTML=html;tooltip.style.display='block';
+        tooltip.style.left=(rect.left+window.scrollX+elements[0].element.x+18)+'px';
+        tooltip.style.top=(rect.top+window.scrollY+elements[0].element.y-20)+'px';
       }
+    }
+  });
+}
 
+/* init charts */
+charts.ext    = makeChart('chart-ext','rgb(0,200,255)','Ext.');
+charts.int    = makeChart('chart-int','rgb(57,217,138)','Int.');
+charts.water  = makeChart('chart-water','rgb(123,97,255)','Eau');
+charts.cave   = makeChart('chart-cave','rgb(0,229,204)','Cave');
+charts.master = makeChart('chart-master','rgb(255,97,166)','Chambre');
+charts.serre  = makeChart('chart-serre','rgb(255,140,66)','Serre');
+charts.hum    = makeChart('chart-hum','rgb(57,217,138)','Hum.');
+charts.pres   = makeChart('chart-pres','rgb(255,140,66)','hPa');
+
+/* ─── API ─── */
+async function apiFetch(endpoint,params=''){
+  const base=`https://api.ecowitt.net/api/v3/device/${endpoint}?application_key=${APP_KEY}&api_key=${API_KEY}&mac=${MAC}&temp_unitid=1${params}`;
+  const urls=[base,`https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`];
+  for(const url of urls){
+    try{
+      const r=await fetch(url);const j=await r.json();
+      if(j.code===0)return j.data;
+    }catch(e){}
+  }
+  throw new Error('Connexion Ecowitt impossible');
+}
+
+/* ─── LIVE ─── */
+async function loadLive(){
+  try{
+    const data=await apiFetch('real_time','&call_back=all');
+    const ch1=data.temp_and_humidity_ch1||{};
+    const inn=data.indoor||{};
+    const ch2=data.temp_and_humidity_ch2||{};
+    const ch3=data.temp_and_humidity_ch3||{};
+    const ch4=data.temp_and_humidity_ch4||{};
+    const ch5=data.temp_and_humidity_ch5||{};
+    const pres=data.pressure||{};
+
+    const get=(o,k)=>o[k]?.value??null;
+
+    const te=get(ch1,'temperature');
+    const ti=get(inn,'temperature');
+    const tw=get(ch2,'temperature');
+    const tc=get(ch3,'temperature');
+    const tm=get(ch4,'temperature');
+    const ts=get(ch5,'temperature');
+
+    const he=get(ch1,'humidity');
+    const hi=get(inn,'humidity');
+    const hc=get(ch3,'humidity');
+    const hm=get(ch4,'humidity');
+    const hs=get(ch5,'humidity');
+
+    const pr=get(pres,'relative');
+    const pa=get(pres,'absolute');
+
+    if(te!==null) document.getElementById('ext-temp').textContent=parseFloat(te).toFixed(1);
+    if(ti!==null) document.getElementById('int-temp').textContent=parseFloat(ti).toFixed(1);
+    if(tw!==null) document.getElementById('water-temp').textContent=parseFloat(tw).toFixed(1);
+    if(tc!==null) document.getElementById('cave-temp').textContent=parseFloat(tc).toFixed(1);
+    if(tm!==null) document.getElementById('master-temp').textContent=parseFloat(tm).toFixed(1);
+    if(ts!==null) document.getElementById('serre-temp').textContent=parseFloat(ts).toFixed(1);
+
+    if(he) document.getElementById('ext-hum').textContent=`💧 ${he}%`;
+    if(hi) document.getElementById('int-hum').textContent=`💧 ${hi}%`;
+    if(hc) document.getElementById('cave-hum').textContent=`💧 ${hc}%`;
+    if(hm) document.getElementById('master-hum').textContent=`💧 ${hm}%`;
+    if(hs) document.getElementById('serre-hum').textContent=`💧 ${hs}%`;
+
+    if(pr){
+      const hpa=(parseFloat(pr)*INHG_TO_HPA).toFixed(1);
+      document.getElementById('pres-rel').textContent=hpa;
+      updatePresTrend(parseFloat(hpa));
+    }
+    if(pa){
+      const hpa=(parseFloat(pa)*INHG_TO_HPA).toFixed(1);
+      document.getElementById('pres-abs').textContent=hpa;
     }
 
-  });
+    buildAlerts(te,he,hc,ts);
 
-}
-
-charts.ext   = makeChart('chart-ext','rgb(0,200,255)');
-charts.int   = makeChart('chart-int','rgb(57,217,138)');
-charts.water = makeChart('chart-water','rgb(123,97,255)');
-charts.hum   = makeChart('chart-hum','rgb(57,217,138)');
-charts.comp  = makeChart('chart-compare','rgb(0,200,255)');
-
-/* FETCH */
-
-async function apiFetch(endpoint, params='') {
-
-  const base =
-    `https://api.ecowitt.net/api/v3/device/${endpoint}` +
-    `?application_key=${APP_KEY}` +
-    `&api_key=${API_KEY}` +
-    `&mac=${MAC}` +
-    `&temp_unitid=1${params}`;
-
-  const urls = [
-    base,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(base)}`
-  ];
-
-  for(const url of urls){
-
-    try{
-
-      const r = await fetch(url);
-
-      const j = await r.json();
-
-      if(j.code === 0){
-        return j.data;
-      }
-
-    }catch(e){}
-
-  }
-
-  throw new Error('Connexion Ecowitt impossible');
-
-}
-
-/* LIVE */
-
-async function loadLive(){
-
-  try{
-
-    const data = await apiFetch('real_time','&call_back=all');
-
-    const ch1 = data.temp_and_humidity_ch1 || {};
-    const inn = data.indoor || {};
-    const ch2 = data.temp_and_humidity_ch2 || {};
-
-    const get = (o,k)=>o[k]?.value ?? null;
-
-    const te = get(ch1,'temperature');
-    const ti = get(inn,'temperature');
-    const tw = get(ch2,'temperature');
-
-    const he = get(ch1,'humidity');
-    const hi = get(inn,'humidity');
-
-    if(te !== null)
-      document.getElementById('ext-temp').textContent = parseFloat(te).toFixed(1);
-
-    if(ti !== null)
-      document.getElementById('int-temp').textContent = parseFloat(ti).toFixed(1);
-
-    if(tw !== null)
-      document.getElementById('water-temp').textContent = parseFloat(tw).toFixed(1);
-
-    document.getElementById('ext-hum').textContent = `💧 ${he}%`;
-    document.getElementById('int-hum').textContent = `💧 ${hi}%`;
-
-    buildAlerts(te,he);
-
-    document.getElementById('status').textContent =
-      'Synchronisé ' + new Date().toLocaleTimeString();
-
+    document.getElementById('status').textContent='Synchronisé '+new Date().toLocaleTimeString();
   }catch(e){
-
-    document.getElementById('status').textContent =
-      'Erreur connexion';
-
+    document.getElementById('status').textContent='Erreur connexion';
   }
-
 }
 
-/* ALERTS */
-
-function buildAlerts(temp,hum){
-
-  const alerts = [];
-
-  if(temp <= 2){
-    alerts.push('<div class="alert warn">❄️ Risque de gel détecté</div>');
+/* ─── PRESSION TREND ─── */
+let presHistory=[];
+function updatePresTrend(hpa){
+  presHistory.push({t:Date.now(),v:hpa});
+  if(presHistory.length>10) presHistory.shift();
+  if(presHistory.length<2){
+    document.getElementById('pres-trend').textContent='--';
+    return;
   }
-
-  if(temp >= 28){
-    alerts.push('<div class="alert warn">🔥 Température élevée</div>');
-  }
-
-  if(hum >= 85){
-    alerts.push('<div class="alert info">💧 Humidité élevée</div>');
-  }
-
-  document.getElementById('alerts').innerHTML =
-    alerts.join('');
-
+  const diff=hpa-presHistory[0].v;
+  const el=document.getElementById('pres-trend');
+  if(diff>1.5){el.textContent='↗ En hausse — beau temps à venir';el.style.color='var(--green)';}
+  else if(diff<-1.5){el.textContent='↘ En baisse — perturbation possible';el.style.color='var(--orange)';}
+  else{el.textContent='→ Stable';el.style.color='var(--muted)';}
 }
 
-/* HISTORY */
+/* ─── ALERTS ─── */
+function buildAlerts(temp,hum,humCave,tempSerre){
+  const list=[];
+  if(temp<=2)  list.push('<div class="alert warn">❄️ Risque de gel extérieur</div>');
+  if(temp>=28) list.push('<div class="alert warn">🔥 Température élevée dehors</div>');
+  if(hum>=85)  list.push('<div class="alert info">💧 Humidité extérieure élevée</div>');
+  if(humCave && humCave>=90) list.push('<div class="alert warn">🪨 Humidité cave critique ('+humCave+'%)</div>');
+  if(tempSerre && tempSerre>=35) list.push('<div class="alert warn">🌿 Serre trop chaude ('+parseFloat(tempSerre).toFixed(1)+'°C)</div>');
+  document.getElementById('alerts').innerHTML=list.join('');
+}
 
+/* ─── HISTORY ─── */
 async function loadHistory(){
+  const now=Math.floor(Date.now()/1000);
+  const ranges={'1d':1,'1w':7,'1m':30,'3m':90,'1y':365};
+  const days=ranges[CURRENT_RANGE];
+  const start=now-(days*24*3600);
+  const pad=x=>String(x).padStart(2,'0');
+  const fmt=ts=>{const d=new Date(ts*1000);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`;};
 
-  const now = Math.floor(Date.now()/1000);
-
-  const ranges = {
-    '1d':1,
-    '1w':7,
-    '1m':30,
-    '3m':90,
-    '1y':365
-  };
-
-  const days = ranges[CURRENT_RANGE];
-
-  const start = now - (days * 24 * 3600);
-
-  const pad = x=>String(x).padStart(2,'0');
-
-  const fmt = ts=>{
-
-    const d = new Date(ts*1000);
-
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ` +
-           `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
-
-  };
-
-  const data = await apiFetch(
+  const data=await apiFetch(
     'history',
-    `&start_date=${encodeURIComponent(fmt(start))}` +
-    `&end_date=${encodeURIComponent(fmt(now))}` +
+    `&start_date=${encodeURIComponent(fmt(start))}&end_date=${encodeURIComponent(fmt(now))}` +
     `&call_back=` +
-    `indoor.temperature,` +
-    `indoor.humidity,` +
-    `temp_and_humidity_ch1.temperature,` +
-    `temp_and_humidity_ch1.humidity,` +
-    `temp_and_humidity_ch2.temperature`
+    `indoor.temperature,indoor.humidity,` +
+    `temp_and_humidity_ch1.temperature,temp_and_humidity_ch1.humidity,` +
+    `temp_and_humidity_ch2.temperature,` +
+    `temp_and_humidity_ch3.temperature,temp_and_humidity_ch3.humidity,` +
+    `temp_and_humidity_ch4.temperature,temp_and_humidity_ch4.humidity,` +
+    `temp_and_humidity_ch5.temperature,temp_and_humidity_ch5.humidity,` +
+    `pressure.relative`
   );
 
   function parse(obj,...keys){
-
-    let c = obj;
-
-    for(const k of keys){
-      c = c?.[k];
-    }
-
-    if(!c?.list) return [];
-
+    let c=obj;
+    for(const k of keys) c=c?.[k];
+    if(!c?.list)return[];
     return Object.entries(c.list)
-      .map(([t,v])=>({
-        t:parseInt(t),
-        v:parseFloat(v)
-      }))
+      .map(([t,v])=>({t:parseInt(t),v:parseFloat(v)}))
       .filter(x=>!isNaN(x.v))
       .sort((a,b)=>a.t-b.t);
-
   }
 
-  const ext  = parse(data,'temp_and_humidity_ch1','temperature');
-  const intd = parse(data,'indoor','temperature');
-  const wat  = parse(data,'temp_and_humidity_ch2','temperature');
+  const ext   =parse(data,'temp_and_humidity_ch1','temperature');
+  const intd  =parse(data,'indoor','temperature');
+  const wat   =parse(data,'temp_and_humidity_ch2','temperature');
+  const cave  =parse(data,'temp_and_humidity_ch3','temperature');
+  const master=parse(data,'temp_and_humidity_ch4','temperature');
+  const serre =parse(data,'temp_and_humidity_ch5','temperature');
 
-  const hext = parse(data,'temp_and_humidity_ch1','humidity');
-  const hint = parse(data,'indoor','humidity');
+  const hext  =parse(data,'temp_and_humidity_ch1','humidity');
+  const hint  =parse(data,'indoor','humidity');
+  const hcave =parse(data,'temp_and_humidity_ch3','humidity');
+  const hmaster=parse(data,'temp_and_humidity_ch4','humidity');
+  const hserre=parse(data,'temp_and_humidity_ch5','humidity');
 
-  updateChart(charts.ext,ext);
-  updateChart(charts.int,intd);
-  updateChart(charts.water,wat);
+  const pres  =parse(data,'pressure','relative');
+  const presHpa=pres.map(x=>({t:x.t,v:parseFloat((x.v*INHG_TO_HPA).toFixed(1))}));
 
-  updateHumChart(hext,hint);
+  updateChart(charts.ext,   ext);
+  updateChart(charts.int,   intd);
+  updateChart(charts.water, wat);
+  updateChart(charts.cave,  cave);
+  updateChart(charts.master,master);
+  updateChart(charts.serre, serre);
+  updateChart(charts.pres,  presHpa);
 
-  buildTable(ext,intd,wat,hext,hint);
+  updateHumChart(hext,hint,hcave);
+  buildTable(ext,intd,wat,cave,master,serre,hext,hint);
 
-  setRanges(ext,'ext');
-  setRanges(intd,'int');
-  setRanges(wat,'water');
+  setRanges(ext,   'ext');
+  setRanges(intd,  'int');
+  setRanges(wat,   'water');
+  setRanges(cave,  'cave');
+  setRanges(master,'master');
+  setRanges(serre, 'serre');
+  setRanges(presHpa,'pres');
 
+  setMinMax(ext,   'ext');
+  setMinMax(intd,  'int');
+  setMinMax(wat,   'water');
+  setMinMax(cave,  'cave');
+  setMinMax(master,'master');
+  setMinMax(serre, 'serre');
 }
 
-/* UPDATE */
+/* ─── LABEL FORMAT ─── */
+function fmtLabel(ts){
+  const d=new Date(ts*1000);
+  if(CURRENT_RANGE==='1d') return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  if(CURRENT_RANGE==='1y') return `${d.getMonth()+1}/${d.getFullYear()}`;
+  return `${d.getDate()}/${d.getMonth()+1}`;
+}
 
+/* ─── UPDATE CHART ─── */
 function updateChart(chart,data){
-
-  chart.data.labels = data.map(x=>{
-
-    const d = new Date(x.t*1000);
-
-    if(CURRENT_RANGE === '1d'){
-
-      return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-
-    }
-
-    if(CURRENT_RANGE === '1w'){
-
-      return `${d.getDate()}/${d.getMonth()+1}`;
-
-    }
-
-    if(CURRENT_RANGE === '1m' || CURRENT_RANGE === '3m'){
-
-      return `${d.getDate()}/${d.getMonth()+1}`;
-
-    }
-
-    return `${d.getMonth()+1}/${d.getFullYear()}`;
-
-  });
-
-  chart.data.datasets[0].data = data.map(x=>x.v);
-
+  chart.data.labels=data.map(x=>fmtLabel(x.t));
+  chart.data.datasets[0].data=data.map(x=>x.v);
   chart.update();
-
 }
 
-/* HUM */
-
-function updateHumChart(ext,intd){
-
-  charts.hum.data.labels =
-    ext.map(x=>{
-
-      const d = new Date(x.t*1000);
-
-      return `${d.getHours()}h`;
-
-    });
-
-  charts.hum.data.datasets = [
-
-    {
-      label:'Humidité Ext.',
-      data:ext.map(x=>x.v),
-      borderColor:'rgb(0,200,255)',
-      backgroundColor:'rgba(0,200,255,.12)',
-      fill:true,
-      tension:.35,
-      pointRadius:0
-    },
-
-    {
-      label:'Humidité Int.',
-      data:intd.map(x=>x.v),
-      borderColor:'rgb(57,217,138)',
-      backgroundColor:'rgba(57,217,138,.12)',
-      fill:true,
-      tension:.35,
-      pointRadius:0
-    }
-
+/* ─── HUM CHART ─── */
+function updateHumChart(ext,intd,cave){
+  charts.hum.data.labels=ext.map(x=>fmtLabel(x.t));
+  charts.hum.data.datasets=[
+    {label:'Ext.',data:ext.map(x=>x.v),borderColor:'rgb(0,200,255)',backgroundColor:'rgba(0,200,255,.1)',fill:true,tension:.35,pointRadius:0},
+    {label:'Int.',data:intd.map(x=>x.v),borderColor:'rgb(57,217,138)',backgroundColor:'rgba(57,217,138,.1)',fill:true,tension:.35,pointRadius:0},
+    {label:'Cave',data:cave.map(x=>x.v),borderColor:'rgb(0,229,204)',backgroundColor:'rgba(0,229,204,.06)',fill:true,tension:.35,pointRadius:0}
   ];
-
-  charts.hum.options.plugins.legend = {
-    labels:{color:'#eef5ff'}
-  };
-
+  charts.hum.options.plugins.legend={labels:{color:'#eef5ff',boxWidth:12}};
   charts.hum.update();
-
 }
 
-/* TABLE */
+/* ─── SET RANGES ─── */
+function setRanges(data,key){
+  if(!data.length)return;
+  const vals=data.map(x=>x.v);
+  const mn=Math.min(...vals);const mx=Math.max(...vals);
+  const el=document.getElementById(`range-${key}`);
+  if(el) el.textContent=`↓ ${mn.toFixed(1)} ↑ ${mx.toFixed(1)}`;
+}
 
-function buildTable(ext,intd,wat,hext,hint){
+/* ─── MIN / MAX CARDS ─── */
+function setMinMax(data,key){
+  if(!data.length)return;
+  const vals=data.map(x=>x.v);
+  const mn=Math.min(...vals);const mx=Math.max(...vals);
+  const minEl=document.getElementById(`${key}-min`);
+  const maxEl=document.getElementById(`${key}-max`);
+  if(minEl) minEl.textContent=`↓ ${mn.toFixed(1)}°`;
+  if(maxEl) maxEl.textContent=`↑ ${mx.toFixed(1)}°`;
+}
 
-  const tbody = document.getElementById('tbody');
+/* ─── TABLE ─── */
+function buildTable(ext,intd,wat,cave,master,serre,hext,hint){
+  const tbody=document.getElementById('tbody');
+  const rows=ext.slice(-48).reverse();
 
-  const rows = ext.slice(-48).reverse();
-
-  const closest = (arr,t)=>{
-
-    const c = arr.reduce((a,b)=>
-      Math.abs(a.t-t) < Math.abs(b.t-t)
-      ? a
-      : b
-    );
-
-    return c?.v ?? null;
-
+  const closest=(arr,t)=>{
+    if(!arr.length)return null;
+    const c=arr.reduce((a,b)=>Math.abs(a.t-t)<Math.abs(b.t-t)?a:b);
+    return c?.v??null;
   };
 
-  tbody.innerHTML = rows.map(r=>{
-
-    const d = new Date(r.t*1000);
-
-    const time =
-      `${String(d.getHours()).padStart(2,'0')}:` +
-      `${String(d.getMinutes()).padStart(2,'0')}`;
-
-    return `
-      <tr>
-        <td>${time}</td>
-        <td>${r.v.toFixed(1)}°</td>
-        <td>${closest(intd,r.t)?.toFixed(1) ?? '--'}°</td>
-        <td>${closest(wat,r.t)?.toFixed(1) ?? '--'}°</td>
-        <td>${closest(hext,r.t)?.toFixed(0) ?? '--'}%</td>
-        <td>${closest(hint,r.t)?.toFixed(0) ?? '--'}%</td>
-      </tr>
-    `;
-
+  tbody.innerHTML=rows.map(r=>{
+    const d=new Date(r.t*1000);
+    const time=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const f=v=>v!==null?v.toFixed(1)+'°':'--';
+    const fh=v=>v!==null?v.toFixed(0)+'%':'--';
+    return `<tr>
+      <td>${time}</td>
+      <td>${f(r.v)}</td>
+      <td>${f(closest(intd,r.t))}</td>
+      <td>${f(closest(wat,r.t))}</td>
+      <td>${f(closest(cave,r.t))}</td>
+      <td>${f(closest(master,r.t))}</td>
+      <td>${f(closest(serre,r.t))}</td>
+      <td>${fh(closest(hext,r.t))}</td>
+      <td>${fh(closest(hint,r.t))}</td>
+    </tr>`;
   }).join('');
 
-  document.getElementById('table-count').textContent =
-    `${rows.length} entrées`;
-
+  document.getElementById('table-count').textContent=`${rows.length} entrées`;
 }
 
-/* RANGES */
-
-function setRanges(data,key){
-
-  if(!data.length) return;
-
-  const vals = data.map(x=>x.v);
-
-  const mn = Math.min(...vals);
-  const mx = Math.max(...vals);
-
-  document.getElementById(`range-${key}`).textContent =
-    `↓ ${mn.toFixed(1)}° ↑ ${mx.toFixed(1)}°`;
-
-}
-
-/* RANGE BUTTONS */
-
+/* ─── RANGE BUTTONS ─── */
 document.querySelectorAll('.range-btn').forEach(btn=>{
-
-  btn.addEventListener('click', async ()=>{
-
-    document.querySelectorAll('.range-btn')
-      .forEach(b=>b.classList.remove('active'));
-
+  btn.addEventListener('click',async()=>{
+    document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-
-    CURRENT_RANGE = btn.dataset.range;
-
-    document.getElementById('status').textContent =
-      'Chargement historique...';
-
+    CURRENT_RANGE=btn.dataset.range;
+    document.getElementById('status').textContent='Chargement historique...';
     await loadHistory();
-
   });
-
 });
 
-/* FULLSCREEN */
-
+/* ─── FULLSCREEN ─── */
 document.addEventListener('keydown',e=>{
-
   if(e.key.toLowerCase()==='f'){
-
-    if(!document.fullscreenElement){
-      document.documentElement.requestFullscreen();
-    }else{
-      document.exitFullscreen();
-    }
-
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
   }
-
 });
 
-/* INIT */
-
+/* ─── INIT ─── */
 async function init(){
-
   await loadLive();
-
   await loadHistory();
-
   setInterval(loadLive,60000);
-
   setInterval(loadHistory,300000);
-
 }
 
 init();
-
 </script>
-
 </body>
 </html>
