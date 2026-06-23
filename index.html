@@ -107,7 +107,7 @@ body{
 }
 
 /* CARDS */
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
 .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .card{
   position:relative;
@@ -128,10 +128,10 @@ body{
   border-radius:50%;
   background:radial-gradient(circle, rgba(255,255,255,.12), transparent 70%);
 }
-.label{color:var(--muted);font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px;}
-.value{font-size:3.4rem;font-weight:700;line-height:1;}
-.unit{font-size:1.2rem;opacity:.7;}
-.meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:.85rem;}
+.label{color:var(--muted);font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;}
+.value{font-size:2.6rem;font-weight:700;line-height:1;}
+.unit{font-size:1rem;opacity:.7;}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:.8rem;}
 
 /* PRESSION CARD */
 .pressure-card{
@@ -206,11 +206,14 @@ tr:hover td{background:rgba(255,255,255,.02);}
 .footer{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;}
 
 /* MOBILE */
+@media(max-width:1400px){
+  .cards{grid-template-columns:repeat(3,1fr);}
+}
 @media(max-width:1100px){
   .cards,.cards-3,.grid3,.grid2{grid-template-columns:1fr 1fr;}
   .header{flex-direction:column;align-items:flex-start;gap:14px;}
   .header-right{width:100%;justify-content:space-between;}
-  .value{font-size:2.8rem;}
+  .value{font-size:2.2rem;}
 }
 @media(max-width:600px){
   .cards,.cards-3,.grid3,.grid2{grid-template-columns:1fr;}
@@ -247,70 +250,27 @@ tr:hover td{background:rgba(255,255,255,.02);}
   <!-- ALERTS -->
   <div class="alerts" id="alerts"></div>
 
-  <!-- SECTION : PRINCIPAL -->
-  <div class="section-label">Capteurs principaux</div>
+  <!-- SECTION : TEMPÉRATURES -->
+  <div class="section-label">Températures</div>
 
   <div class="cards">
     <div class="card">
-      <div class="label">Extérieure</div>
+      <div class="label">🌡 Extérieure</div>
       <div class="value" style="color:var(--blue)"><span id="ext-temp">--</span><span class="unit">°C</span></div>
       <div class="meta"><span id="ext-hum">💧 --%</span><span id="ext-min">↓ --</span><span id="ext-max">↑ --</span></div>
     </div>
     <div class="card">
-      <div class="label">Intérieure</div>
+      <div class="label">🏠 Intérieure</div>
       <div class="value" style="color:var(--green)"><span id="int-temp">--</span><span class="unit">°C</span></div>
       <div class="meta"><span id="int-hum">💧 --%</span><span id="int-min">↓ --</span><span id="int-max">↑ --</span></div>
     </div>
-    <div class="card">
-      <div class="label">Eau (rivière)</div>
-      <div class="value" style="color:var(--purple)"><span id="water-temp">--</span><span class="unit">°C</span></div>
-      <div class="meta"><span id="water-min">↓ --</span><span id="water-max">↑ --</span></div>
-    </div>
-    <div class="pressure-card">
-      <div class="label">Pression baro.</div>
-      <div class="pressure-val"><span id="pres-rel">--</span><span style="font-size:1rem;opacity:.7"> hPa</span></div>
-      <div class="pressure-sub">Relative</div>
-      <div style="margin-top:4px;color:var(--muted);font-size:.82rem;">Absolue : <span id="pres-abs">--</span> hPa</div>
-      <div id="pres-trend" style="margin-top:8px;font-size:.82rem;color:var(--muted);">--</div>
-    </div>
-  </div>
-
-  <!-- GRAPHIQUES PRINCIPAUX -->
-  <div class="grid3">
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Temp. extérieure</div>
-        <div class="panel-sub" id="range-ext"></div>
-      </div>
-      <canvas id="chart-ext"></canvas>
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Temp. intérieure</div>
-        <div class="panel-sub" id="range-int"></div>
-      </div>
-      <canvas id="chart-int"></canvas>
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Temp. eau</div>
-        <div class="panel-sub" id="range-water"></div>
-      </div>
-      <canvas id="chart-water"></canvas>
-    </div>
-  </div>
-
-  <!-- SECTION : AUTRES PIÈCES -->
-  <div class="section-label">Autres pièces</div>
-
-  <div class="cards-3">
     <div class="card">
       <div class="label">🪨 Cave</div>
       <div class="value" style="color:var(--teal)"><span id="cave-temp">--</span><span class="unit">°C</span></div>
       <div class="meta"><span id="cave-hum">💧 --%</span><span id="cave-min">↓ --</span><span id="cave-max">↑ --</span></div>
     </div>
     <div class="card">
-      <div class="label">🛏 Chambre des maîtres</div>
+      <div class="label">🛏 Ch. des maîtres</div>
       <div class="value" style="color:var(--pink)"><span id="master-temp">--</span><span class="unit">°C</span></div>
       <div class="meta"><span id="master-hum">💧 --%</span><span id="master-min">↓ --</span><span id="master-max">↑ --</span></div>
     </div>
@@ -319,10 +279,42 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="value" style="color:var(--orange)"><span id="serre-temp">--</span><span class="unit">°C</span></div>
       <div class="meta"><span id="serre-hum">💧 --%</span><span id="serre-min">↓ --</span><span id="serre-max">↑ --</span></div>
     </div>
+    <div class="card">
+      <div class="label">💧 Eau (rivière)</div>
+      <div class="value" style="color:var(--purple)"><span id="water-temp">--</span><span class="unit">°F</span></div>
+      <div class="meta"><span id="water-min">↓ --</span><span id="water-max">↑ --</span></div>
+    </div>
   </div>
 
-  <!-- GRAPHIQUES AUTRES PIÈCES -->
+  <!-- SECTION : PRESSION -->
+  <div class="section-label">Pression barométrique</div>
+
+  <div class="pressure-card" style="max-width:420px;">
+    <div class="label">Pression baro.</div>
+    <div class="pressure-val"><span id="pres-rel">--</span><span style="font-size:1rem;opacity:.7"> inHg</span></div>
+    <div class="pressure-sub">Relative</div>
+    <div style="margin-top:4px;color:var(--muted);font-size:.82rem;">Absolue : <span id="pres-abs">--</span> inHg</div>
+    <div id="pres-trend" style="margin-top:8px;font-size:.82rem;color:var(--muted);">--</div>
+  </div>
+
+  <!-- GRAPHIQUES TEMPÉRATURES -->
+  <div class="section-label">Graphiques</div>
+
   <div class="grid3">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🌡 Temp. extérieure</div>
+        <div class="panel-sub" id="range-ext"></div>
+      </div>
+      <canvas id="chart-ext"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">🏠 Temp. intérieure</div>
+        <div class="panel-sub" id="range-int"></div>
+      </div>
+      <canvas id="chart-int"></canvas>
+    </div>
     <div class="panel">
       <div class="panel-head">
         <div class="panel-title">🪨 Cave</div>
@@ -330,6 +322,9 @@ tr:hover td{background:rgba(255,255,255,.02);}
       </div>
       <canvas id="chart-cave"></canvas>
     </div>
+  </div>
+
+  <div class="grid3">
     <div class="panel">
       <div class="panel-head">
         <div class="panel-title">🛏 Chambre des maîtres</div>
@@ -344,9 +339,18 @@ tr:hover td{background:rgba(255,255,255,.02);}
       </div>
       <canvas id="chart-serre"></canvas>
     </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">💧 Eau (rivière)</div>
+        <div class="panel-sub" id="range-water"></div>
+      </div>
+      <canvas id="chart-water"></canvas>
+    </div>
   </div>
 
   <!-- HUM + PRESSION -->
+  <div class="section-label">Humidité &amp; Pression</div>
+
   <div class="grid2">
     <div class="panel">
       <div class="panel-head">
@@ -377,7 +381,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
             <th>Heure</th>
             <th>Ext.</th>
             <th>Int.</th>
-            <th>Eau</th>
+            <th>Eau (°F)</th>
             <th>🪨 Cave</th>
             <th>🛏 Chambre</th>
             <th>🌿 Serre</th>
@@ -403,7 +407,7 @@ const APP_KEY = '4E38524335ACBCBFA94809FD60EB2071';
 const API_KEY = 'c6288d22-7592-4772-b9c9-e472e08e3421';
 const MAC     = '84:1F:E8:35:E4:93';
 
-const INHG_TO_HPA = 33.8639;
+const toF = c => (parseFloat(c)*9/5+32).toFixed(1);  // °C → °F
 
 let CURRENT_RANGE = '1d';
 
@@ -534,7 +538,7 @@ async function loadLive(){
 
     if(te!==null) document.getElementById('ext-temp').textContent=parseFloat(te).toFixed(1);
     if(ti!==null) document.getElementById('int-temp').textContent=parseFloat(ti).toFixed(1);
-    if(tw!==null) document.getElementById('water-temp').textContent=parseFloat(tw).toFixed(1);
+    if(tw!==null) document.getElementById('water-temp').textContent=toF(tw);
     if(tc!==null) document.getElementById('cave-temp').textContent=parseFloat(tc).toFixed(1);
     if(tm!==null) document.getElementById('master-temp').textContent=parseFloat(tm).toFixed(1);
     if(ts!==null) document.getElementById('serre-temp').textContent=parseFloat(ts).toFixed(1);
@@ -546,13 +550,11 @@ async function loadLive(){
     if(hs) document.getElementById('serre-hum').textContent=`💧 ${hs}%`;
 
     if(pr){
-      const hpa=(parseFloat(pr)*INHG_TO_HPA).toFixed(1);
-      document.getElementById('pres-rel').textContent=hpa;
-      updatePresTrend(parseFloat(hpa));
+      document.getElementById('pres-rel').textContent=parseFloat(pr).toFixed(2);
+      updatePresTrend(parseFloat(pr));
     }
     if(pa){
-      const hpa=(parseFloat(pa)*INHG_TO_HPA).toFixed(1);
-      document.getElementById('pres-abs').textContent=hpa;
+      document.getElementById('pres-abs').textContent=parseFloat(pa).toFixed(2);
     }
 
     buildAlerts(te,he,hc,ts);
@@ -574,8 +576,8 @@ function updatePresTrend(hpa){
   }
   const diff=hpa-presHistory[0].v;
   const el=document.getElementById('pres-trend');
-  if(diff>1.5){el.textContent='↗ En hausse — beau temps à venir';el.style.color='var(--green)';}
-  else if(diff<-1.5){el.textContent='↘ En baisse — perturbation possible';el.style.color='var(--orange)';}
+  if(diff>0.05){el.textContent='↗ En hausse — beau temps à venir';el.style.color='var(--green)';}
+  else if(diff<-0.05){el.textContent='↘ En baisse — perturbation possible';el.style.color='var(--orange)';}
   else{el.textContent='→ Stable';el.style.color='var(--muted)';}
 }
 
@@ -624,7 +626,8 @@ async function loadHistory(){
 
   const ext   =parse(data,'temp_and_humidity_ch1','temperature');
   const intd  =parse(data,'indoor','temperature');
-  const wat   =parse(data,'temp_and_humidity_ch2','temperature');
+  const watC  =parse(data,'temp_and_humidity_ch2','temperature');
+  const wat   =watC.map(x=>({t:x.t,v:parseFloat((x.v*9/5+32).toFixed(1))})); // °F
   const cave  =parse(data,'temp_and_humidity_ch3','temperature');
   const master=parse(data,'temp_and_humidity_ch4','temperature');
   const serre =parse(data,'temp_and_humidity_ch5','temperature');
@@ -635,8 +638,7 @@ async function loadHistory(){
   const hmaster=parse(data,'temp_and_humidity_ch4','humidity');
   const hserre=parse(data,'temp_and_humidity_ch5','humidity');
 
-  const pres  =parse(data,'pressure','relative');
-  const presHpa=pres.map(x=>({t:x.t,v:parseFloat((x.v*INHG_TO_HPA).toFixed(1))}));
+  const pres  =parse(data,'pressure','relative'); // déjà en inHg
 
   updateChart(charts.ext,   ext);
   updateChart(charts.int,   intd);
@@ -644,7 +646,7 @@ async function loadHistory(){
   updateChart(charts.cave,  cave);
   updateChart(charts.master,master);
   updateChart(charts.serre, serre);
-  updateChart(charts.pres,  presHpa);
+  updateChart(charts.pres,  pres);
 
   updateHumChart(hext,hint,hcave);
   buildTable(ext,intd,wat,cave,master,serre,hext,hint);
@@ -655,7 +657,7 @@ async function loadHistory(){
   setRanges(cave,  'cave');
   setRanges(master,'master');
   setRanges(serre, 'serre');
-  setRanges(presHpa,'pres');
+  setRanges(pres,  'pres');
 
   setMinMax(ext,   'ext');
   setMinMax(intd,  'int');
@@ -727,12 +729,13 @@ function buildTable(ext,intd,wat,cave,master,serre,hext,hint){
     const d=new Date(r.t*1000);
     const time=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
     const f=v=>v!==null?v.toFixed(1)+'°':'--';
+    const ff=v=>v!==null?v.toFixed(1)+'°F':'--';
     const fh=v=>v!==null?v.toFixed(0)+'%':'--';
     return `<tr>
       <td>${time}</td>
       <td>${f(r.v)}</td>
       <td>${f(closest(intd,r.t))}</td>
-      <td>${f(closest(wat,r.t))}</td>
+      <td>${ff(closest(wat,r.t))}</td>
       <td>${f(closest(cave,r.t))}</td>
       <td>${f(closest(master,r.t))}</td>
       <td>${f(closest(serre,r.t))}</td>
